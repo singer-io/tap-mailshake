@@ -1,0 +1,58 @@
+{
+  "object": "campaign",
+  "id": 1,
+  "title": "Mycampaign",
+  "created": "2017-08-19T02:31:22.218Z",
+  "archived": "null",
+  "isPaused": false,
+  "messages": [
+    {
+      "object": "message",
+      "id": 1,
+      "type": "initial",
+      "subject": "Mysubject",
+      "replyToID": "null",
+      "isPaused": false
+    },
+    {
+      "object": "message",
+      "id": 2,
+      "type": "follow-up",
+      "subject": "null",
+      "replyToID": 1,
+      "isPaused": false
+    },
+    {
+      "object": "message",
+      "id": 3,
+      "type": "follow-up",
+      "subject": "null",
+      "replyToID": 1,
+      "isPaused": false
+    },
+    {
+      "object": "message",
+      "id": 4,
+      "type": "drip",
+      "subject": "Here'sadripemail",
+      "replyToID": "null",
+      "isPaused": false
+    },
+    {
+      "object": "message",
+      "id": 5,
+      "type": "on-click",
+      "subject": "Youclickedmylink",
+      "replyToID": "null",
+      "isPaused": false
+    }
+  ],
+  "sender": {
+    "object": "sender",
+    "id": "abc",
+    "emailAddress": "mysender@company.com",
+    "fromName": "FirmABC",
+    "created": "2017-08-19T02:31:22.218Z"
+  },
+  "url": "https://mailshake.com/app/#/..."
+}

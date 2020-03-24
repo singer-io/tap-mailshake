@@ -1,0 +1,13 @@
+{
+  "object": "recipient",
+  "id": 1,
+  "emailAddress": "john@doe.com",
+  "fullName": "John Doe",
+  "first": "John",
+  "last": "Doe",
+  "created": "2017-04-06T17:45:07.188Z",
+  "isPaused": false,
+  "fields": {
+    "favorite_color": "Red"
+  }
+}

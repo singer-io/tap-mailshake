@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "object": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "id": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "emailAddress": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "fullName": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "first": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "last": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "created": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "fields": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": true,
+      "properties": {
+      }
+    }
+  }
+}

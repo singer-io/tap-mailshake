@@ -1,0 +1,34 @@
+{
+  "object": "lead",
+  "id": 1,
+  "created": "2017-04-11T16:13:51.956Z",
+  "openedDate": "2017-04-11T16:13:51.955Z",
+  "lastStatusChangeDate": null,
+  "recipient": {
+    "object": "recipient",
+    "id": 1,
+    "emailAddress": "john@doe.com",
+    "fullName": "John Doe",
+    "first": "John",
+    "last": "Doe",
+    "created": "2017-04-06T17:45:07.188Z",
+    "fields": {
+      "favorite_color": "Red"
+    }
+  },
+  "campaign": {
+    "object": "campaign",
+    "id": 1,
+    "title": "My Campaign",
+    "created": "2017-04-11T16:13:51.956Z",
+  },
+  "status": "open",
+  "assignedTo": {
+    "object": "user",
+    "id": 1,
+    "emailAddress": "lucy@yourteam.com",
+    "fullName": "Lucy Doe",
+    "first": "Lucy",
+    "last": "Doe"
+  }
+}
