@@ -1,4 +1,4 @@
-# tap-ujet
+# tap-mailshake
 
 This is a [Singer](https://singer.io) tap that produces JSON-formatted data
 following the [Singer
@@ -6,99 +6,58 @@ spec](https://github.com/singer-io/getting-started/blob/master/SPEC.md).
 
 This tap:
 
-- Pulls raw data from the [UJET API](https://support.ujet.co/hc/en-us/articles/115006908127-UJET-Data-API#h_7d95eafc-6c02-446b-bcc6-b733f4e1143e)
+- Pulls raw data from the [MAILSHAKE API](https://api-docs.mailshake.com/)
 - Extracts the following resources:
-  - Agents
-  - Agent Activity Logs
-  - Calls
-  - Chats
-  - Menus
-  - Menu Tree
-  - Teams
-  - Team Tree
-  - User Statuses
+  - Campaigns
+  - Recipients
+  - Leads
+  - Senders
+  - Team Members
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
 
 
 ## Streams
 
-**agents**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/agents
-- Primary key fields: id
-- Foreign key fields: teams > id
-- Replication strategy: INCREMENTAL (query filtered)
-  - Bookmark: status_updated_at
-  - Bookmark query field: status_updated_at[from]
-- Transformations: none
-
-**agent_activity_logs**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/agent_activity_logs
-- Primary key fields: id
-- Foreign key fields: teams > id
-- Replication strategy: INCREMENTAL (query filtered)
-  - Bookmark: status_updated_at
-  - Bookmark query field: status_updated_at[from]
-- Transformations: none
-
-**calls**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/calls
-- Primary key fields: id
-- Foreign key fields: teams > id
-- Replication strategy: INCREMENTAL (query filtered)
-  - Bookmark: updated_at
-  - Bookmark query field: updated_at[from]
-- Transformations: none
-
-**chats**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/chats
-- Primary key fields: id
-- Foreign key fields: teams > id
-- Replication strategy: INCREMENTAL (query filtered)
-  - Bookmark: updated_at
-  - Bookmark query field: updated_at[from]
-- Transformations: none
-
-**menu_tree**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/menu/tree
+**campaigns**
+- Endpoint: https://api.mailshake.com/2017-04-01/campaigns/list
 - Primary key fields: id
 - Foreign key fields: none
-- Replication strategy: FULL_TABLE
-- Transformations: de-nest all recursive 'children'
-
-**menus**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/menus
-- Primary key fields: id
-- Foreign key fields: none
-- Replication strategy: FULL_TABLE
+- Replication strategy: INCREMENTAL
 - Transformations: none
 
-**team_tree**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/team/tree
+**recipients**
+- Endpoint: https://api.mailshake.com/2017-04-01/recipients/list
 - Primary key fields: id
-- Foreign key fields: none
-- Replication strategy: FULL_TABLE
-- Transformations: de-nest all recursive 'children'
-
-**teams**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/teams
-- Primary key fields: id
-- Foreign key fields: none
-- Replication strategy: FULL_TABLE
+- Foreign key fields: campaigns > id
+- Replication strategy: INCREMENTAL (Query filtered)
+    - Filter: campaignID (parent)
 - Transformations: none
 
-**user_statuses**
-- Endpoint: https://{subdomain}.ujet.co/manager/api/v1/user_statuses
+**leads**
+- Endpoint: https://api.mailshake.com/2017-04-01/leads/list
 - Primary key fields: id
 - Foreign key fields: none
-- Replication strategy: FULL_TABLE
+- Replication strategy: INCREMENTAL
 - Transformations: none
 
+**senders**
+- Endpoint: https://api.mailshake.com/2017-04-01/senders/list
+- Primary key fields: id
+- Foreign key fields: none
+- Replication strategy: INCREMENTAL
+- Transformations: none
 
+**team_members**
+- Endpoint: https://api.mailshake.com/2017-04-01/team/list-members
+- Primary key fields: id
+- Foreign key fields: none
+- Replication strategy: INCREMENTAL
+- Transformations: none
 
 
 ## Authentication
-
+This tap uses [simple authentication](https://api-docs.mailshake.com/#Simple) as defined by the Mailshake API docs.
 
 ## Quick Start
 
@@ -111,7 +70,7 @@ This tap:
     > source venv/bin/activate
     > python setup.py install
     OR
-    > cd .../tap-ujet
+    > cd .../tap-mailshake
     > pip install .
     ```
 2. Dependent libraries
@@ -126,17 +85,14 @@ This tap:
     - [singer-tools](https://github.com/singer-io/singer-tools)
     - [target-stitch](https://github.com/singer-io/target-stitch)
 
-3. Create your tap's `config.json` file. The `server_subdomain` is everything before `.ujet.com.` in the ujet URL.  The `account_name` is everything between `.ujet.com.` and `api` in the ujet URL. The `date_window_size` is the integer number of days (between the from and to dates) for date-windowing through the date-filtered endpoints (default = 60).
+3. Create your tap's `config.json` file. The `api_key` is your Mailshake account's specific API key from the `Extensions>API` selection in the Mailshake UI.
 
     ```json
     {
-        "company_key": "YOUR_COMPANY_KEY",
-        "company_secret": "YOUR_COMPANY_SECRET_CODE",
-        "subdomain": "YOUR_COMPANY",
-        "domain": "ujet",
+        "api_key": "YourApiKeyFromMailshake",
+        "domain": "api.mailshake.com",
         "start_date": "2019-01-01T00:00:00Z",
-        "user_agent": "tap-ujet <api_user_email@your_company.com>",
-        "date_window_size": "14"
+        "user_agent": "tap-mailshake <api_user_email@your_company.com>"
     }
     ```
     
@@ -144,12 +100,12 @@ This tap:
 
     ```json
     {
-        "currently_syncing": "calls",
+        "currently_syncing": "campaigns",
         "bookmarks": {
-            "agnets": "2019-09-27T22:34:39.000000Z",
-            "agent_activity_logs": "2019-09-28T15:30:26.000000Z",
-            "calls": "2019-09-28T18:23:53Z",
-            "chats": "2019-09-27T22:40:30.000000Z"
+            "campaigns": "2019-09-27T22:34:39.000000Z",
+            "recipients": "2019-09-28T15:30:26.000000Z",
+            "leads": "2019-09-28T18:23:53Z",
+            "senders": "2019-09-27T22:40:30.000000Z"
         }
     }
     ```
@@ -157,7 +113,7 @@ This tap:
 4. Run the Tap in Discovery Mode
     This creates a catalog.json for selecting objects/fields to integrate:
     ```bash
-    tap-ujet --config config.json --discover > catalog.json
+    tap-mailshake --config config.json --discover > catalog.json
     ```
    See the Singer docs on discovery mode
    [here](https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#discovery-mode).
@@ -166,26 +122,26 @@ This tap:
 
     For Sync mode:
     ```bash
-    > tap-ujet --config tap_config.json --catalog catalog.json > state.json
+    > tap-mailshake --config tap_config.json --catalog catalog.json > state.json
     > tail -1 state.json > state.json.tmp && mv state.json.tmp state.json
     ```
     To load to json files to verify outputs:
     ```bash
-    > tap-ujet --config tap_config.json --catalog catalog.json | target-json > state.json
+    > tap-mailshake --config tap_config.json --catalog catalog.json | target-json > state.json
     > tail -1 state.json > state.json.tmp && mv state.json.tmp state.json
     ```
     To pseudo-load to [Stitch Import API](https://github.com/singer-io/target-stitch) with dry run:
     ```bash
-    > tap-ujet --config tap_config.json --catalog catalog.json | target-stitch --config target_config.json --dry-run > state.json
+    > tap-mailshake --config tap_config.json --catalog catalog.json | target-stitch --config target_config.json --dry-run > state.json
     > tail -1 state.json > state.json.tmp && mv state.json.tmp state.json
     ```
 
 6. Test the Tap
     
-    While code/bytecode/Stitchoping the ujet tap, the following utilities were run in accordance with Singer.io best practices:
+    While developing the mailshake tap, the following utilities were run in accordance with Singer.io best practices:
     Pylint to improve [code quality](https://github.com/singer-io/getting-started/blob/master/docs/BEST_PRACTICES.md#code-quality):
     ```bash
-    > pylint tap_ujet -d missing-docstring -d logging-format-interpolation -d too-many-locals -d too-many-arguments
+    > pylint tap_mailshake -d missing-docstring -d logging-format-interpolation -d too-many-locals -d too-many-arguments
     ```
     Pylint test resulted in the following score:
     ```bash
@@ -195,7 +151,7 @@ This tap:
 
     To [check the tap](https://github.com/singer-io/singer-tools#singer-check-tap) and verify working:
     ```bash
-    > tap-ujet --config tap_config.json --catalog catalog.json | singer-check-tap > state.json
+    > tap-mailshake --config tap_config.json --catalog catalog.json | singer-check-tap > state.json
     > tail -1 state.json > state.json.tmp && mv state.json.tmp state.json
     ```
     Check tap resulted in the following:
