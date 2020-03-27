@@ -15,7 +15,6 @@ REQUIRED_CONFIG_KEYS = [
     'api_key',
     'start_date',
     'user_agent',
-    'date_window_size'
 ]
 
 

@@ -3,16 +3,20 @@
   "additionalProperties": false,
   "properties": {
     "object": {
-      "type": "string"
+      "type": ["null", "string"]
     },
     "id": {
-      "type": "integer"
+      "type": ["null", "integer"]
+    },
+    "actionDate": {
+      "type": ["null", "string"],
+      "format": "date-time"
     },
     "title": {
-      "type": "string"
+      "type": ["null", "string"]
     },
     "created": {
-      "type": "string",
+      "type": ["null", "string"],
       "format": "date-time"
     },
     "archived": {
@@ -25,24 +29,31 @@
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "format": "date-time"
     },
     "isPaused": {
-      "type": "boolean"
+      "type": ["null", "boolean"]
     },
     "messages": {
-      "type": "array",
+      "type": ["null", "array"],
       "items": {
         "additionalProperties": false,
         "properties": {
           "object": {
-            "type": "string"
+            "type": ["null", "string"]
           },
           "id": {
-            "type": "integer"
+            "type": ["null", "integer"]
+          },
+          "campaignId": {
+            "type": [
+              "null",
+              "integer"
+            ]
           },
           "type": {
-            "type": "string"
+            "type": ["null", "string"]
           },
           "subject": {
             "type": [
@@ -57,13 +68,13 @@
             ]
           },
           "isPaused": {
-            "type": "boolean"
+            "type": ["null", "boolean"]
           }
         }
       }
     },
     "sender": {
-      "type": "object",
+      "type": ["null", "object"],
       "additionalProperties": false,
       "properties": {
         "object": {
@@ -91,13 +102,13 @@
           ]
         },
         "created": {
-          "type": "string",
+          "type": ["null", "string"],
           "format": "date-time"
         }
       }
     },
     "url": {
-      "type": "string",
+      "type": ["null", "string"],
       "format": "uri"
     }
   }

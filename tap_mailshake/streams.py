@@ -62,6 +62,42 @@ STREAMS = {
         'params': {
         },
         'data_key': 'results'
+    },
+    'sent_messages': {
+        'path': 'activity/sent',
+        'key_properties': ['id'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['actionDate'],
+        'params': {
+        },
+        'data_key': 'results'
+    },
+    'opens': {
+        'path': 'activity/opens',
+        'key_properties': ['id'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['actionDate'],
+        'params': {
+        },
+        'data_key': 'results'
+    },
+    'clicks': {
+        'path': 'activity/clicks',
+        'key_properties': ['id'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['actionDate'],
+        'params': {
+        },
+        'data_key': 'results'
+    },
+    'replies': {
+        'path': 'activity/replies',
+        'key_properties': ['id'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['actionDate'],
+        'params': {
+        },
+        'data_key': 'results'
     }
 }
 

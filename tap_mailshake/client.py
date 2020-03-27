@@ -149,7 +149,7 @@ class MailshakeClient(object):
                           (Server5xxError, ConnectionError, Server429Error),
                           max_tries=7,
                           factor=3)
-    @utils.ratelimit(1, 1.5)
+    @utils.ratelimit(1, 3)
     def request(self, method, path=None, url=None, json=None, version=None, **kwargs):
         """Perform HTTP request"""
 

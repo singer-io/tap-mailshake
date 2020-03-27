@@ -199,8 +199,18 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches
         # The data_key identifies the array/list of records below the <root> element
         transformed_data = data.get(data_key)
         for record in transformed_data:
+            if stream_name in ('recipients', 'campaigns'):
+                if stream_name == 'recipients':
+                    record['campaignId'] = parent_id
+                else:
+                    messages = record.get('messages', [])
+                    for message in messages:
+                        message['campaignId'] = record.get('id', None)
+
             fields = record.get('fields', {})
             for key, value in list(fields.items()):
+                if key == '':
+                    fields['blank'] = fields.pop(key)
                 new_key = key.replace(' ', '_').replace('(', '').replace(')', '')
                 fields[new_key] = fields.pop(key)
 
