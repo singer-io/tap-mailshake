@@ -174,4 +174,4 @@ This tap uses [simple authentication](https://api-docs.mailshake.com/#Simple) as
     ```
 ---
 
-Copyright &copy; 2019 Stitch
+Copyright &copy; 2020 Stitch
