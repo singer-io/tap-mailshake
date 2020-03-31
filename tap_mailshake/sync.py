@@ -1,10 +1,10 @@
 import json
-import re
 
 import singer
 from singer import (UNIX_SECONDS_INTEGER_DATETIME_PARSING, Transformer,
                     metadata, metrics, utils)
 from tap_mailshake.streams import STREAMS
+from tap_mailshake.transform import transform_data
 
 LOGGER = singer.get_logger()
 
@@ -32,9 +32,7 @@ def get_bookmark(state, stream, default):
     if (state is None) or ('bookmarks' not in state):
         return default
     return (
-        state
-            .get('bookmarks', {})
-            .get(stream, default)
+        state.get('bookmarks', {}).get(stream, default)
     )
 
 
@@ -85,7 +83,8 @@ def process_records(catalog,  # pylint: disable=too-many-branches
                 # Reset max_bookmark_value to new value if higher
                 if transformed_record.get(bookmark_field):
                     if max_bookmark_value is None or \
-                            transformed_record[bookmark_field] > transform_datetime(max_bookmark_value):
+                            transformed_record[bookmark_field] \
+                            > transform_datetime(max_bookmark_value):
                         max_bookmark_value = transformed_record[bookmark_field]
 
                 if bookmark_field and (bookmark_field in transformed_record):
@@ -111,7 +110,7 @@ def process_records(catalog,  # pylint: disable=too-many-branches
 
 
 # Sync a specific parent or child endpoint.
-def sync_endpoint(client,  # pylint: disable=too-many-branches
+def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-blocks
                   catalog,
                   state,
                   start_date,
@@ -160,8 +159,6 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches
                     params[bookmark_query_field] = start_date
                 elif bookmark_type == 'integer':
                     params[bookmark_query_field] = last_integer
-            # if next_token:
-            #     params['nextToken'] = next_token
         else:
             if next_token:
                 params['nextToken'] = next_token
@@ -195,24 +192,9 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches
             if not data.get(data_key):
                 break
 
-        # Transform data with transform_json from transform.py
+        # Transform data with transform_data from transform.py
         # The data_key identifies the array/list of records below the <root> element
-        transformed_data = data.get(data_key)
-        for record in transformed_data:
-            if stream_name in ('recipients', 'campaigns'):
-                if stream_name == 'recipients':
-                    record['campaignId'] = parent_id
-                else:
-                    messages = record.get('messages', [])
-                    for message in messages:
-                        message['campaignId'] = record.get('id', None)
-
-            fields = record.get('fields', {})
-            for key, value in list(fields.items()):
-                if key == '':
-                    fields['blank'] = fields.pop(key)
-                new_key = key.replace(' ', '_').replace('(', '').replace(')', '')
-                fields[new_key] = fields.pop(key)
+        transformed_data = transform_data(data.get(data_key), stream_name, parent_id)
 
         record_count = 0
 
@@ -255,9 +237,8 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches
 
                         # sync_endpoint for child
                         LOGGER.info(
-                            'START Sync for Stream: {}, parent_stream: {}, parent_id: {}'.format(child_stream_name,
-                                                                                                 stream_name,
-                                                                                                 parent_id))
+                            'START Sync for Stream: {}, parent_stream: {}, parent_id: {}'
+                            .format(child_stream_name, stream_name, parent_id))
                         child_path = child_endpoint_config.get(
                             'path', child_stream_name).format(str(parent_id))
                         child_bookmark_field = next(iter(child_endpoint_config.get(
@@ -280,11 +261,12 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches
                             parent=child_endpoint_config.get('parent'),
                             parent_id=parent_id)
                         LOGGER.info(
-                            'FINISHED Sync for Stream: {}, parent_id: {}, total_records: {}' \
-                                .format(child_stream_name, parent_id, child_total_records))
+                            'FINISHED Sync for Stream: {}, parent_id: {}, total_records: {}'
+                            .format(child_stream_name, parent_id, child_total_records))
 
         # to_rec: to record; ending record for the batch page
         to_rec = offset + record_count
+        total_processed_records = to_rec
         LOGGER.info('Synced Stream: {}, page: {}, records: {} to {}'.format(
             stream_name,
             page,

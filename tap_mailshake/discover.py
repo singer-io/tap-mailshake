@@ -1,6 +1,6 @@
 import singer
 from singer.catalog import Catalog, CatalogEntry, Schema
-from tap_mailshake.schema import get_schemas, STREAMS
+from tap_mailshake.schema import get_schemas
 from tap_mailshake.streams import flatten_streams
 
 LOGGER = singer.get_logger()

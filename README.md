@@ -13,6 +13,11 @@ This tap:
   - Leads
   - Senders
   - Team Members
+  - Activities
+    - Clicks
+    - Opens
+    - Replies
+    - Sent Messages
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
 
@@ -52,6 +57,42 @@ This tap:
 - Endpoint: https://api.mailshake.com/2017-04-01/team/list-members
 - Primary key fields: id
 - Foreign key fields: none
+- Replication strategy: INCREMENTAL
+- Transformations: none
+
+**sent_messages**
+- Endpoint: https://api.mailshake.com/2017-04-01/activity/sent
+- Primary key fields: id
+- Foreign key fields: 
+    - recipients > id
+    - campaigns > id
+- Replication strategy: INCREMENTAL
+- Transformations: none
+
+**opens**
+- Endpoint: https://api.mailshake.com/2017-04-01/activity/opens
+- Primary key fields: id
+- Foreign key fields: 
+    - recipients > id
+    - campaigns > id
+- Replication strategy: INCREMENTAL
+- Transformations: none
+
+**clicks**
+- Endpoint: https://api.mailshake.com/2017-04-01/activity/clicks
+- Primary key fields: id
+- Foreign key fields: 
+    - recipients > id
+    - campaigns > id
+- Replication strategy: INCREMENTAL
+- Transformations: none
+
+**replies**
+- Endpoint: https://api.mailshake.com/2017-04-01/activity/replies
+- Primary key fields: id
+- Foreign key fields: 
+    - recipients > id
+    - campaigns > id
 - Replication strategy: INCREMENTAL
 - Transformations: none
 
@@ -145,8 +186,12 @@ This tap uses [simple authentication](https://api-docs.mailshake.com/#Simple) as
     ```
     Pylint test resulted in the following score:
     ```bash
-    TBD LATER
-    Your code has been rated at TBD/10
+    ************* Module tap_mailshake.sync
+    tap_mailshake/sync.py:153:4: R1702: Too many nested blocks (7/5) (too-many-nested-blocks)
+    tap_mailshake/sync.py:113:0: R0915: Too many statements (69/50) (too-many-statements)
+    
+    ------------------------------------------------------------------
+    Your code has been rated at 9.95/10 (previous run: 9.95/10, +0.00)
     ```
 
     To [check the tap](https://github.com/singer-io/singer-tools#singer-check-tap) and verify working:
@@ -156,21 +201,28 @@ This tap uses [simple authentication](https://api-docs.mailshake.com/#Simple) as
     ```
     Check tap resulted in the following:
     ```bash
-    TBD LATER
-
+    Checking stdin for valid Singer-formatted data
     The output is valid.
-    It contained 127 messages for 10 streams.
-
-        10 schema messages
-        92 record messages
-        25 state messages
-
+    It contained 33101 messages for 9 streams.
+    
+         11 schema messages
+      33066 record messages
+         24 state messages
+    
     Details by stream:
-    +---------------------+---------+---------+
-    | stream              | records | schemas |
-    +---------------------+---------+---------+
-    | TBD                 | 99      | 1       |
-    +---------------------+---------+---------+
+    +---------------+---------+---------+
+    | stream        | records | schemas |
+    +---------------+---------+---------+
+    | clicks        | 1341    | 1       |
+    | team_members  | 7       | 1       |
+    | senders       | 5       | 1       |
+    | recipients    | 6203    | 3       |
+    | campaigns     | 31      | 1       |
+    | opens         | 13642   | 1       |
+    | leads         | 812     | 1       |
+    | sent_messages | 9207    | 1       |
+    | replies       | 1818    | 1       |
+    +---------------+---------+---------+
     ```
 ---
 

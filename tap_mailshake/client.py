@@ -1,10 +1,7 @@
-import base64
-import re
 import backoff
 import requests
-# from requests.exceptions import ConnectionError
-from singer import metrics, utils
 import singer
+from singer import metrics, utils
 
 LOGGER = singer.get_logger()
 API_VERSION = '2017-04-01'
@@ -93,13 +90,12 @@ def raise_for_error(response):
                 error_code = response.get('status')
                 ex = get_exception_for_error_code(error_code)
                 raise ex(message)
-            else:
-                raise MailshakeError(error)
+            raise MailshakeError(error)
         except (ValueError, TypeError):
             raise MailshakeError(error)
 
 
-class MailshakeClient(object):
+class MailshakeClient:
     """MailshakeClient"""
 
     # pylint: disable=too-many-instance-attributes
@@ -150,7 +146,7 @@ class MailshakeClient(object):
                           max_tries=7,
                           factor=3)
     @utils.ratelimit(1, 3)
-    def request(self, method, path=None, url=None, json=None, version=None, **kwargs):
+    def request(self, method, path=None, url=None, json=None, **kwargs):
         """Perform HTTP request"""
 
         # pylint: disable=too-many-branches
