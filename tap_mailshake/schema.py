@@ -1,7 +1,7 @@
 import os
 import json
 from singer import metadata
-from tap_mailshake.streams import STREAMS, flatten_streams
+from tap_mailshake.streams import flatten_streams
 
 
 # Reference:
