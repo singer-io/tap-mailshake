@@ -55,6 +55,10 @@ class MailshakeInternalServiceError(MailshakeError):
     pass
 
 
+class MailshakeAPILimitReachedError(MailshakeError):
+    pass
+
+
 ERROR_CODE_EXCEPTION_MAPPING = {
     400: MailshakeBadRequestError,
     401: MailshakeUnauthorizedError,
@@ -64,6 +68,7 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     405: MailshakeMethodNotAllowedError,
     409: MailshakeConflictError,
     422: MailshakeUnprocessableEntityError,
+    'limit_reached': MailshakeAPILimitReachedError,
     500: MailshakeInternalServiceError}
 
 
@@ -87,8 +92,9 @@ def raise_for_error(response):
             if ('error' in response) or ('errorCode' in response):
                 message = '%s: %s' % (response.get('error', str(error)),
                                       response.get('message', 'Unknown Error'))
-                error_code = response.get('status')
-                ex = get_exception_for_error_code(error_code)
+                error_code = response.get('code')
+                error_status = response.get('status')
+                ex = get_exception_for_error_code(error_code if error_code else error_status)
                 raise ex(message)
             raise MailshakeError(error)
         except (ValueError, TypeError):
@@ -142,8 +148,7 @@ class MailshakeClient:
         return True
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ConnectionError, Server429Error),
-                          max_tries=7,
+                          (Server5xxError, ConnectionError, MailshakeAPILimitReachedError),
                           factor=3)
     @utils.ratelimit(1, 3)
     def request(self, method, path=None, url=None, json=None, **kwargs):
