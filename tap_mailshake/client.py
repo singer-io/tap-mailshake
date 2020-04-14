@@ -19,15 +19,27 @@ class MailshakeError(Exception):
     pass
 
 
-class MailshakeBadRequestError(MailshakeError):
+class MailshakeInvalidApiKeyError(MailshakeError):
     pass
 
 
-class MailshakeUnauthorizedError(MailshakeError):
+class MailshakeMissingTeamAdminError(MailshakeError):
     pass
 
 
-class MailshakeRequestFailedError(MailshakeError):
+class MailshakeMissingDependentDataError(MailshakeError):
+    pass
+
+
+class MailshakeMissingParameterError(MailshakeError):
+    pass
+
+
+class MailshakeInvalidParameterError(MailshakeError):
+    pass
+
+
+class MailshakeNotAuthorizedError(MailshakeError):
     pass
 
 
@@ -35,36 +47,54 @@ class MailshakeNotFoundError(MailshakeError):
     pass
 
 
-class MailshakeMethodNotAllowedError(MailshakeError):
+class MailshakeExceedsMonthlyRecipientsError(MailshakeError):
     pass
 
 
-class MailshakeConflictError(MailshakeError):
+class MailshakeUserIsNotAdminError(MailshakeError):
     pass
 
 
-class MailshakeForbiddenError(MailshakeError):
+class MailshakeUserIsDisabledError(MailshakeError):
     pass
 
 
-class MailshakeUnprocessableEntityError(MailshakeError):
+class MailshakeMissingSubscriptionError(MailshakeError):
     pass
 
 
-class MailshakeInternalServiceError(MailshakeError):
+class MailshakeTeamBlockedError(MailshakeError):
+    pass
+
+
+class MailshakeAPILimitReachedError(MailshakeError):
+    pass
+
+
+class MailshakeInternalError(MailshakeError):
+    pass
+
+
+class MailshakeUnspecifiedError(MailshakeError):
     pass
 
 
 ERROR_CODE_EXCEPTION_MAPPING = {
-    400: MailshakeBadRequestError,
-    401: MailshakeUnauthorizedError,
-    402: MailshakeRequestFailedError,
-    403: MailshakeForbiddenError,
-    404: MailshakeNotFoundError,
-    405: MailshakeMethodNotAllowedError,
-    409: MailshakeConflictError,
-    422: MailshakeUnprocessableEntityError,
-    500: MailshakeInternalServiceError}
+    "invalid_api_key": MailshakeInvalidApiKeyError,
+    "missing_team_admin": MailshakeMissingTeamAdminError,
+    "missing_dependent_data": MailshakeMissingDependentDataError,
+    "missing_parameter": MailshakeMissingParameterError,
+    "invalid_parameter": MailshakeInvalidParameterError,
+    "not_authorized": MailshakeNotAuthorizedError,
+    "not_found": MailshakeNotFoundError,
+    "exceeds_monthly_recipients": MailshakeExceedsMonthlyRecipientsError,
+    "user_not_admin": MailshakeUserIsNotAdminError,
+    "user_is_disabled": MailshakeUserIsDisabledError,
+    "missing_subscription": MailshakeMissingSubscriptionError,
+    "team_blocked": MailshakeTeamBlockedError,
+    "limit_reached": MailshakeAPILimitReachedError,
+    "internal_error": MailshakeInternalError,
+    "unspecified_error": MailshakeUnspecifiedError}
 
 
 def get_exception_for_error_code(error_code):
@@ -87,7 +117,7 @@ def raise_for_error(response):
             if ('error' in response) or ('errorCode' in response):
                 message = '%s: %s' % (response.get('error', str(error)),
                                       response.get('message', 'Unknown Error'))
-                error_code = response.get('status')
+                error_code = response.get('code')
                 ex = get_exception_for_error_code(error_code)
                 raise ex(message)
             raise MailshakeError(error)
@@ -142,8 +172,7 @@ class MailshakeClient:
         return True
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ConnectionError, Server429Error),
-                          max_tries=7,
+                          (Server5xxError, ConnectionError, MailshakeAPILimitReachedError),
                           factor=3)
     @utils.ratelimit(1, 3)
     def request(self, method, path=None, url=None, json=None, **kwargs):
