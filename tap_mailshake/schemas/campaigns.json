@@ -25,7 +25,7 @@
         "boolean"
       ]
     },
-    "ended_at": {
+    "endedAt": {
       "type": [
         "null",
         "string"
@@ -89,7 +89,7 @@
             "string"
           ]
         },
-        "email_address": {
+        "emailAddress": {
           "type": [
             "null",
             "string"
