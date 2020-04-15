@@ -38,6 +38,7 @@
     "messages": {
       "type": ["null", "array"],
       "items": {
+        "type": ["null", "object"],
         "additionalProperties": false,
         "properties": {
           "object": {
