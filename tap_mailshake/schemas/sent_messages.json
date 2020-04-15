@@ -208,6 +208,7 @@
         "array"
       ],
       "items": {
+        "type": ["null", "object"],
         "additionalProperties": false,
         "properties": {
           "object": {

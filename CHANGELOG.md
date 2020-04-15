@@ -1,5 +1,7 @@
 # Changelog
-
+## 0.0.5
+  * Further correct schema issues [#4](https://github.com/singer-io/tap-mailshake/pull/4)
+  
 ## 0.0.4
   * Correct Campaigns schema [#3](https://github.com/singer-io/tap-mailshake/pull/3)
 
