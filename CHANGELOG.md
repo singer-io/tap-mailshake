@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.4
+  * Correct Campaigns schema [#3](https://github.com/singer-io/tap-mailshake/pull/3)
+
 ## 0.0.3
   * Properly handle API limits and other error types (#2)[https://github.com/singer-io/tap-mailshake/pull/2]
 
