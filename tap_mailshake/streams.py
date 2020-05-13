@@ -18,7 +18,7 @@ STREAMS = {
     'campaigns': {
         'path': 'campaigns/list',
         'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['created'],
         'params': {
         },
