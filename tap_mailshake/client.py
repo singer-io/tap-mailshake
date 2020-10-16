@@ -198,7 +198,6 @@ class MailshakeClient:
             kwargs['headers'] = {}
 
         kwargs['headers']['Accept'] = 'application/json'
-        kwargs['headers']['Authorization'] = 'Basic ' + self.__api_key
 
         if self.__user_agent:
             kwargs['headers']['User-Agent'] = self.__user_agent
@@ -211,6 +210,7 @@ class MailshakeClient:
                 method=method,
                 url=url,
                 json=json,
+                auth=HTTPBasicAuth(self.__api_key, '')
                 **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
