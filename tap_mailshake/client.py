@@ -2,6 +2,7 @@ import backoff
 import requests
 import singer
 from singer import metrics, utils
+from requests.auth import HTTPBasicAuth
 
 LOGGER = singer.get_logger()
 API_VERSION = '2017-04-01'
@@ -162,10 +163,10 @@ class MailshakeClient:
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
         headers['Accept'] = 'application/json'
-        headers['Authorization'] = 'Basic ' + self.__api_key
         response = self.__session.get(
             url=url,
-            headers=headers)
+            headers=headers,
+            auth=HTTPBasicAuth(self.__api_key, ''))
         if response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))
             return False
