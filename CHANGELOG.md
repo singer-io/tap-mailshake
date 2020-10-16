@@ -1,4 +1,6 @@
 # Changelog
+## 0.0.6
+  * Change campaigns stream to replicate with full table load to ensure child stream is always capturing all changes.
 ## 0.0.5
   * Further correct schema issues [#4](https://github.com/singer-io/tap-mailshake/pull/4)
   
