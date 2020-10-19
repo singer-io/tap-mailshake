@@ -210,7 +210,7 @@ class MailshakeClient:
                 method=method,
                 url=url,
                 json=json,
-                auth=HTTPBasicAuth(self.__api_key, '')
+                auth=HTTPBasicAuth(self.__api_key, ''),
                 **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 

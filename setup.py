@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='tap-mailshake',
-      version='0.0.7',
+      version='0.0.8',
       description='Singer.io tap for extracting data from the Mailshake API',
       author='nick.civili@bytecode.io',
       classifiers=['Programming Language :: Python :: 3 :: Only'],

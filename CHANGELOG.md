@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.8
+  * Fix other usage of unencoded api key.
+
 ## 0.0.7
   * Fix other usage of unencoded api key.
 
