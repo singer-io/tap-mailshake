@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.9
+  * Dependabot update [#7](https://github.com/singer-io/tap-mailshake/pull/7)
+
 ## 0.0.8
   * Fix other usage of unencoded api key.
 
