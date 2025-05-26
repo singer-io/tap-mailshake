@@ -206,11 +206,15 @@ class MailshakeClient:
             kwargs['headers']['Content-Type'] = 'application/json'
 
         with metrics.http_request_timer(endpoint) as timer:
+            timeout = kwargs.pop("timeout", 50)
+            if timeout is None:
+                raise ValueError("Timeout must be explicitly set and cannot be None.")
             response = self.__session.request(
                 method=method,
                 url=url,
                 json=json,
                 auth=HTTPBasicAuth(self.__api_key, ''),
+                timeout=timeout,
                 **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
