@@ -3,6 +3,9 @@ import requests
 import singer
 from singer import metrics, utils
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import ConnectionError, ChunkedEncodingError
+import http.client
+from requests.exceptions import Timeout
 
 LOGGER = singer.get_logger()
 API_VERSION = '2017-04-01'
@@ -134,13 +137,14 @@ class MailshakeClient:
 
     def __init__(self,
                  api_key,
-                 user_agent=None):
+                 user_agent=None,request_timeout=50):
         self.__api_key = api_key
         self.base_url = "https://api.mailshake.com/{}".format(
             API_VERSION)
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__verified = False
+        self.request_timeout = request_timeout
 
     def __enter__(self):
         self.__verified = self.check_access()
@@ -153,7 +157,7 @@ class MailshakeClient:
                           Server5xxError,
                           max_tries=5,
                           factor=2)
-    @utils.ratelimit(1, 1.2)
+    @utils.ratelimit(5, 1.2)
     def check_access(self):
         if self.__api_key is None:
             raise Exception('Error: Missing api_key in tap_config.json.')
@@ -172,9 +176,15 @@ class MailshakeClient:
             return False
         return True
 
-    @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ConnectionError, MailshakeAPILimitReachedError),
-                          factor=3)
+    @backoff.on_exception(
+        backoff.expo,
+        (Server5xxError, ConnectionError, ChunkedEncodingError, http.client.IncompleteRead,
+         MailshakeAPILimitReachedError,Timeout),
+        factor=3,
+        max_tries=5,
+        on_backoff=lambda details: LOGGER.warning(
+            f"Retrying {details['target'].__name__} after: {details['exception']}")
+    )
     @utils.ratelimit(1, 3)
     def request(self, method, path=None, url=None, json=None, **kwargs):
         """Perform HTTP request"""
@@ -206,7 +216,7 @@ class MailshakeClient:
             kwargs['headers']['Content-Type'] = 'application/json'
 
         with metrics.http_request_timer(endpoint) as timer:
-            timeout = kwargs.pop("timeout", 50)
+            timeout = kwargs.pop("request_timeout", self.request_timeout)
             if timeout is None:
                 raise ValueError("Timeout must be explicitly set and cannot be None.")
             response = self.__session.request(
