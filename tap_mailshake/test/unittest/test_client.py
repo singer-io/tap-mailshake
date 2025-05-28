@@ -29,7 +29,3 @@ class TestMailshakeClientRetries(unittest.TestCase):
             client.request("GET", path="dummy_endpoint")
 
         self.assertEqual(mock_request.call_count, 5)
-
-
-if __name__ == "__main__":
-    unittest.main()

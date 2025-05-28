@@ -134,7 +134,7 @@ This tap uses [simple authentication](https://api-docs.mailshake.com/#Simple) as
         "domain": "api.mailshake.com",
         "start_date": "2019-01-01T00:00:00Z",
         "user_agent": "tap-mailshake <api_user_email@your_company.com>"
-				"request_timeout":"50"
+				"request_timeout": 300
     }
     ```
     request_timeout (optional): Timeout in seconds for API requests. Defaults to no timeout if not specified.
