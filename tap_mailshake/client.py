@@ -138,7 +138,7 @@ class MailshakeClient:
 
     def __init__(self,
                  api_key,
-                 user_agent=None, request_timeout=None):
+                 user_agent=None, request_timeout=REQUEST_TIMEOUT):
         self.__api_key = api_key
         self.base_url = "https://api.mailshake.com/{}".format(
             API_VERSION)
@@ -158,7 +158,7 @@ class MailshakeClient:
                           Server5xxError,
                           max_tries=5,
                           factor=2)
-    @utils.ratelimit(5, 1.2)
+    @utils.ratelimit(1, 1.2)
     def check_access(self):
         if self.__api_key is None:
             raise Exception("Error: Missing api_key in tap_config.json.")
@@ -217,15 +217,15 @@ class MailshakeClient:
             kwargs["headers"]["Content-Type"] = "application/json"
 
         with metrics.http_request_timer(endpoint) as timer:
-            timeout = kwargs.pop("request_timeout", self.request_timeout)
-            if timeout is None:
+            request_timeout = kwargs.pop("request_timeout", self.request_timeout)
+            if request_timeout is None:
                 raise ValueError("Timeout must be explicitly set and cannot be None.")
             response = self.__session.request(
                 method=method,
                 url=url,
                 json=json,
                 auth=HTTPBasicAuth(self.__api_key, ""),
-                timeout=timeout,
+                timeout=request_timeout,
                 **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 

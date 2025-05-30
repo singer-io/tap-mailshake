@@ -124,7 +124,8 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-b
                   id_fields=None,
                   selected_streams=None,
                   parent=None,
-                  parent_id=None):
+                  parent_id=None,
+                  request_timeout=300):
     # Get the latest bookmark for the stream and set the last_integer/datetime
     last_datetime = None
     last_integer = None
@@ -181,7 +182,9 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-b
             url=url,
             path=path,
             params=querystring,
-            endpoint=stream_name)
+            endpoint=stream_name,
+            request_timeout=request_timeout,
+        )
 
         # time_extracted: datetime when the data was extracted from the API
         time_extracted = utils.now()

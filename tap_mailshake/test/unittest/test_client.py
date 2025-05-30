@@ -16,7 +16,7 @@ class TestMailshakeClientRetries(unittest.TestCase):
         with self.assertRaises(Timeout):
             client.request("GET", path="some_endpoint")
 
-        # Verify request retried 5 times due to backoff config
+        # Verify request retried 1 times due to backoff config
         self.assertEqual(mocked_request.call_count, 5)
 
     @patch("time.sleep", return_value=None)
