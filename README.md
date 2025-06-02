@@ -137,7 +137,7 @@ This tap uses [simple authentication](https://api-docs.mailshake.com/#Simple) as
 				"request_timeout": 300
     }
     ```
-    request_timeout (optional): Timeout in seconds for API requests. Defaults to no timeout if not specified.
+    `request_timeout` (optional): Timeout in seconds for API requests. Defaults to no timeout if not specified.
     Optionally, also create a `state.json` file. `currently_syncing` is an optional attribute used for identifying the last object to be synced in case the job is interrupted mid-stream. The next run would begin where the last job left off.
 
     ```json
