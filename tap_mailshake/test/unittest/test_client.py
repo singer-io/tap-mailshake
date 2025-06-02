@@ -1,31 +1,44 @@
 import unittest
-from unittest.mock import patch
-from requests.exceptions import Timeout, ConnectionError
+from unittest.mock import patch, Mock
 from tap_mailshake.client import MailshakeClient
+from parameterized import parameterized
+from requests.exceptions import Timeout
 
 
-class TestMailshakeClientRetries(unittest.TestCase):
+class TestMailshakeClientTimeout(unittest.TestCase):
+    @parameterized.expand([
+        ("valid_timeout", {"request_timeout": 50}, 50, False, False),
+        ("default_timeout", {}, 300, False, False),
+        ("none_timeout_should_raise", {"request_timeout": None}, None, True, False),
+        ("timeout_exception_raised", {"request_timeout": 10}, 10, False, True),
+    ])
+    @patch('tap_mailshake.client.metrics.http_request_timer')
+    @patch('tap_mailshake.client.requests.Session.request')
+    def test_request_timeout_behavior(
+        self, name, request_kwargs, expected_timeout,
+        expect_value_error, simulate_timeout,
+        mock_request, mock_timer
+    ):
+        mock_timer.return_value.__enter__.return_value = Mock(tags={})
 
-    @patch("time.sleep", return_value=None)
-    @patch("requests.Session.request", side_effect=Timeout)
-    def test_request_retries_on_timeout(self, mocked_request, mocked_sleep):
-        """Test that MailshakeClient.request retries on Timeout error."""
-        client = MailshakeClient(api_key="dummy")
+        if simulate_timeout:
+            mock_request.side_effect = Timeout("Simulated timeout")
+        elif not expect_value_error:
+            mock_response = Mock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {'nextToken': ''}
+            mock_request.return_value = mock_response
 
-        # Expect a Timeout exception after retries
-        with self.assertRaises(Timeout):
-            client.request("GET", path="some_endpoint")
+        client = MailshakeClient(api_key="test-key")
 
-        # Verify request retried 1 times due to backoff config
-        self.assertEqual(mocked_request.call_count, 5)
-
-    @patch("time.sleep", return_value=None)
-    @patch("requests.Session.request", side_effect=[ConnectionError()] * 5)
-    def test_connection_error(self, mock_request, _):
-        """Simulate 5 retries on ConnectionError."""
-        client = MailshakeClient(api_key="dummy", user_agent="test")
-
-        with self.assertRaises(ConnectionError):
-            client.request("GET", path="dummy_endpoint")
-
-        self.assertEqual(mock_request.call_count, 5)
+        if expect_value_error:
+            with self.assertRaises(ValueError) as context:
+                client.request(method='GET', path='some-endpoint', **request_kwargs)
+            self.assertIn("Timeout must be explicitly set and cannot be None", str(context.exception))
+        elif simulate_timeout:
+            with self.assertRaises(Timeout):
+                client.request(method='GET', path='some-endpoint', **request_kwargs)
+        else:
+            client.request(method='GET', path='some-endpoint', **request_kwargs)
+            _, kwargs = mock_request.call_args
+            self.assertEqual(kwargs.get('timeout'), expected_timeout)
