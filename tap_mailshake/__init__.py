@@ -28,9 +28,13 @@ def do_discover():
 @singer.utils.handle_top_exception(LOGGER)
 def main():
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
+    request_timeout = parsed_args.config.get('request_timeout')
 
-    with MailshakeClient(parsed_args.config['api_key'],
-                         parsed_args.config['user_agent']) as client:
+    with MailshakeClient(
+            parsed_args.config['api_key'],
+            parsed_args.config['user_agent'],
+            request_timeout=request_timeout
+    ) as client:
 
         state = {}
         if parsed_args.state:

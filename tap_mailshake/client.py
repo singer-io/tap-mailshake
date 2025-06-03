@@ -138,7 +138,8 @@ class MailshakeClient:
 
     def __init__(self,
                  api_key,
-                 user_agent=None, request_timeout=REQUEST_TIMEOUT):
+                 user_agent=None,
+                 request_timeout=REQUEST_TIMEOUT):
         self.__api_key = api_key
         self.base_url = "https://api.mailshake.com/{}".format(
             API_VERSION)
