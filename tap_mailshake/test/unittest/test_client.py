@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import patch, Mock
 from parameterized import parameterized
 from requests.exceptions import Timeout
+from unittest.mock import patch
+from requests.exceptions import ConnectionError
 from tap_mailshake.client import MailshakeClient
 
 
@@ -42,14 +44,21 @@ class TestMailshakeClientTimeout(unittest.TestCase):
             client.request(method='GET', path='some-endpoint', request_timeout=10)
 
     @patch("time.sleep", return_value=None)
-    @patch("requests.Session.request", side_effect=ConnectionError)
-    def test_connection_error(self, mock_request, _):
+    def test_connection_error(self, _):
         client = MailshakeClient(api_key="dummy", user_agent="test")
-        with self.assertRaises(ConnectionError):
-            client.request("GET", path="dummy_endpoint")
 
-        # Expect 5 calls because of retries
-        self.assertEqual(mock_request.call_count, 1)
+        # Simulate 5 failures to exhaust retry attempts
+        with patch.object(
+                client._MailshakeClient__session,
+                "request",
+                side_effect=[ConnectionError] * 5
+        ) as mock_request:
+            with self.assertRaises(ConnectionError):
+                client.request("GET", path="dummy_endpoint")
+
+            self.assertEqual(mock_request.call_count, 5)
+
+
 
 
 
