@@ -7,7 +7,7 @@ from tap_mailshake.streams import STREAMS
 from tap_mailshake.transform import transform_data
 
 LOGGER = singer.get_logger()
-
+DEFAULT_REQUEST_TIMEOUT = 300
 
 def write_schema(catalog, stream_name):
     stream = catalog.get_stream(stream_name)
@@ -125,8 +125,11 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-b
                   selected_streams=None,
                   parent=None,
                   parent_id=None,
-                  request_timeout=300):
+                  request_timeout= DEFAULT_REQUEST_TIMEOUT):
     # Get the latest bookmark for the stream and set the last_integer/datetime
+    if not start_date:
+        LOGGER.warning(f"No start_date provided for stream '{stream_name}', using default.")
+        start_date = "2019-01-01T00:00:00Z"
     last_datetime = None
     last_integer = None
     data_key = endpoint_config.get('data_key')
@@ -230,13 +233,14 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-b
                     for record in transformed_data:
                         i = 0
                         # Set parent_id
-                        for id_field in id_fields:
-                            if i == 0:
-                                parent_id_field = id_field
-                            if id_field == 'id':
-                                parent_id_field = id_field
-                            i = i + 1
-                        parent_id = record.get(parent_id_field)
+                        # Initialize parent_id_field to None in case id_fields is missing or empty
+                        parent_id_field = None
+                        if id_fields:
+                            parent_id_field = 'id' if 'id' in id_fields else id_fields[0]
+                        else:
+                            LOGGER.warning(f"No id_fields provided for stream '{stream_name}'")
+                        # Safely extract parent_id only if parent_id_field is set
+                        parent_id = record.get(parent_id_field) if parent_id_field else None
 
                         # sync_endpoint for child
                         LOGGER.info(

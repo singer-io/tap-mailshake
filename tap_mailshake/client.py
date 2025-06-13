@@ -219,8 +219,6 @@ class MailshakeClient:
 
         with metrics.http_request_timer(endpoint) as timer:
             request_timeout = kwargs.pop("request_timeout", self.request_timeout)
-            if request_timeout is None:
-                raise ValueError("Timeout must be explicitly set and cannot be None.")
             response = self.__session.request(
                 method=method,
                 url=url,
@@ -232,6 +230,9 @@ class MailshakeClient:
 
         if response.status_code >= 500:
             raise Server5xxError()
+
+        if response.status_code == 429:
+            raise MailshakeAPILimitReachedError("Rate limit exceeded")
 
         if response.status_code != 200:
             raise_for_error(response)
