@@ -328,6 +328,7 @@ def get_selected_fields(catalog, stream_name):
 
 
 def sync(client, config, catalog, state):
+    start_date = "2019-01-01T00:00:00Z"
     if 'start_date' in config:
         start_date = config['start_date']
 
