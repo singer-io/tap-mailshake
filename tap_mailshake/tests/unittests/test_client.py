@@ -23,7 +23,7 @@ class TestMailshakeClientTimeout(unittest.TestCase):
         mock_response.json.return_value = {'nextToken': ''}
         mock_request.return_value = mock_response
 
-        client = MailshakeClient(api_key="test-key")
+        client = MailshakeClient(api_key="tests-key")
         client.request(method='GET', path='some-endpoint', **request_kwargs)
 
         _, kwargs = mock_request.call_args
@@ -31,7 +31,7 @@ class TestMailshakeClientTimeout(unittest.TestCase):
 
     def test_none_timeout_raises_value_error(self):
         """Test that None timeout raises ValueError."""
-        client = MailshakeClient(api_key="test-key")
+        client = MailshakeClient(api_key="tests-key")
         with self.assertRaises(ValueError) as context:
             client.request(method='GET', path='some-endpoint', request_timeout=None)
         self.assertIn("Timeout must be explicitly set and cannot be None", str(context.exception))
@@ -41,13 +41,13 @@ class TestMailshakeClientTimeout(unittest.TestCase):
         """Test that a timeout exception is raised when request times out."""
         mock_request.side_effect = Timeout("Simulated timeout")
 
-        client = MailshakeClient(api_key="test-key")
+        client = MailshakeClient(api_key="tests-key")
         with self.assertRaises(Timeout):
             client.request(method='GET', path='some-endpoint', request_timeout=10)
 
     @patch("time.sleep", return_value=None)
     def test_connection_error(self, _):
-        client = MailshakeClient(api_key="dummy", user_agent="test")
+        client = MailshakeClient(api_key="dummy", user_agent="tests")
 
         # Simulate 5 failures to exhaust retry attempts
         with patch.object(
