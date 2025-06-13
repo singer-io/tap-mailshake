@@ -1,5 +1,5 @@
 import json
-
+from client import REQUEST_TIMEOUT
 import singer
 from singer import (UNIX_SECONDS_INTEGER_DATETIME_PARSING, Transformer,
                     metadata, metrics, utils)
@@ -7,7 +7,6 @@ from tap_mailshake.streams import STREAMS
 from tap_mailshake.transform import transform_data
 
 LOGGER = singer.get_logger()
-DEFAULT_REQUEST_TIMEOUT = 300
 
 def write_schema(catalog, stream_name):
     stream = catalog.get_stream(stream_name)
@@ -125,7 +124,7 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-b
                   selected_streams=None,
                   parent=None,
                   parent_id=None,
-                  request_timeout= DEFAULT_REQUEST_TIMEOUT):
+                  request_timeout= REQUEST_TIMEOUT):
     # Get the latest bookmark for the stream and set the last_integer/datetime
     if not start_date:
         LOGGER.warning(f"No start_date provided for stream '{stream_name}', using default.")
