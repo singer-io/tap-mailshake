@@ -78,11 +78,10 @@ class TestMailshakeClientTimeout(unittest.TestCase):
 
         self.assertEqual(mock_request.call_count, 5)
 
-    @patch("tap_mailshake.client.requests.Session.request")
     @patch("time.sleep", return_value=None)
-    def test_mailshake_ratelimit_applies_sleep(self, mock_sleep, mock_request):
-        """Test that MailshakeClient applies rate limit delay between calls."""
-
+    @patch("tap_mailshake.client.requests.Session.request")
+    def test_mailshake_rate_limit_enforces_sleep(self, mock_request, mock_sleep):
+        """Test that MailshakeClient applies rate limiting via time.sleep between requests."""
         # Simulate successful response
         mock_response = Mock(spec=Response)
         mock_response.status_code = 200
@@ -99,3 +98,4 @@ class TestMailshakeClientTimeout(unittest.TestCase):
 
         # Assert that time.sleep was called at least twice (between the 3 calls)
         assert mock_sleep.call_count >= 2
+
