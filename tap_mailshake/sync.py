@@ -1,5 +1,5 @@
 import json
-from client import REQUEST_TIMEOUT
+from tap_mailshake.client import REQUEST_TIMEOUT
 import singer
 from singer import (UNIX_SECONDS_INTEGER_DATETIME_PARSING, Transformer,
                     metadata, metrics, utils)
