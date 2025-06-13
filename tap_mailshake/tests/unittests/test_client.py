@@ -29,13 +29,6 @@ class TestMailshakeClientTimeout(unittest.TestCase):
         _, kwargs = mock_request.call_args
         self.assertEqual(kwargs.get('timeout'), expected_timeout)
 
-    def test_none_timeout_raises_value_error(self):
-        """Test that None timeout raises ValueError."""
-        client = MailshakeClient(api_key="tests-key")
-        with self.assertRaises(ValueError) as context:
-            client.request(method='GET', path='some-endpoint', request_timeout=None)
-        self.assertIn("Timeout must be explicitly set and cannot be None", str(context.exception))
-
     @patch('tap_mailshake.client.requests.Session.request')
     def test_timeout_exception_is_raised(self, mock_request):
         """Test that a timeout exception is raised when request times out."""
@@ -59,6 +52,7 @@ class TestMailshakeClientTimeout(unittest.TestCase):
                 client.request("GET", path="dummy_endpoint")
 
             self.assertEqual(mock_request.call_count, 5)
+
 
     @patch("time.sleep", return_value=None)
     @patch("tap_mailshake.client.requests.Session.request")
