@@ -140,10 +140,9 @@ class MailshakeClient:
             API_VERSION)
         self.__user_agent = user_agent
         self.__session = requests.Session()
-        self.__verified = False
 
     def __enter__(self):
-        self.__verified = self.check_access()
+        self.check_access()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):

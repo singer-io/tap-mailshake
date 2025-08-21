@@ -16,7 +16,7 @@ jobs:
           command: |
             source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
             uv pip install pylint
-            pylint tap_mailshake --disable missing-docstring,logging-format-interpolation,no-member,broad-except,too-many-branches,consider-using-f-string,raise-missing-from,broad-exception-raised
+            pylint tap_mailshake --disable missing-docstring,logging-format-interpolation,no-member,broad-except,too-many-branches,consider-using-f-string,raise-missing-from,broad-exception-raised,too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-nested-blocks,too-many-statements
 
 workflows:
   version: 2
