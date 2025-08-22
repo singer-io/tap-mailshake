@@ -228,12 +228,13 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-b
                         i = 0
                         # Set parent_id
                         for id_field in id_fields:
+                            parent_id_field = None
                             if i == 0:
                                 parent_id_field = id_field
                             if id_field == 'id':
                                 parent_id_field = id_field
                             i = i + 1
-                        parent_id = record.get(parent_id_field)
+                        parent_id = record.get(parent_id_field, None)
 
                         # sync_endpoint for child
                         LOGGER.info(
@@ -321,8 +322,7 @@ def get_selected_fields(catalog, stream_name):
 
 
 def sync(client, config, catalog, state):
-    if 'start_date' in config:
-        start_date = config['start_date']
+    start_date = config.get('start_date', None)
 
     # Get selected_streams from catalog, based on state last_stream
     #   last_stream = Previous currently synced stream, if the load was interrupted
