@@ -29,6 +29,7 @@ STREAMS = {
                 'key_properties': ['id'],
                 'replication_method': 'INCREMENTAL',
                 'replication_keys': ['created'],
+                'parent': 'campaigns',
                 'params': {
                     'campaignID': '<parent_id>'
                 },
@@ -67,6 +68,7 @@ STREAMS = {
         'path': 'activity/sent',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
+        'parent': 'activity',
         'replication_keys': ['actionDate'],
         'params': {
         },
@@ -76,6 +78,7 @@ STREAMS = {
         'path': 'activity/opens',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
+        'parent': 'activity',
         'replication_keys': ['actionDate'],
         'params': {
         },
@@ -85,6 +88,7 @@ STREAMS = {
         'path': 'activity/clicks',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
+        'parent': 'activity',
         'replication_keys': ['actionDate'],
         'params': {
         },
@@ -94,6 +98,7 @@ STREAMS = {
         'path': 'activity/replies',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
+        'parent': 'activity',
         'replication_keys': ['actionDate'],
         'params': {
         },
@@ -109,7 +114,8 @@ def flatten_streams():
         flat_streams[stream_name] = {
             'key_properties': endpoint_config.get('key_properties'),
             'replication_method': endpoint_config.get('replication_method'),
-            'replication_keys': endpoint_config.get('replication_keys')
+            'replication_keys': endpoint_config.get('replication_keys'),
+            'parent_stream': endpoint_config.get('parent')
         }
         # Loop through children
         children = endpoint_config.get('children')
@@ -118,6 +124,7 @@ def flatten_streams():
                 flat_streams[child_stream_name] = {
                     'key_properties': child_enpoint_config.get('key_properties'),
                     'replication_method': child_enpoint_config.get('replication_method'),
-                    'replication_keys': child_enpoint_config.get('replication_keys')
+                    'replication_keys': child_enpoint_config.get('replication_keys'),
+                    'parent_stream': endpoint_config.get('parent', stream_name)
                 }
     return flat_streams
