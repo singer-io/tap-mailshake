@@ -27,7 +27,7 @@ jobs:
           name: 'Unit Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
-            pip install nose coverage parameterized
+            uv pip install nose coverage parameterized
             nosetests --with-coverage --cover-erase --cover-package=tap_mailshake --cover-html-dir=htmlcov tap_mailshake/tests/unittests
             coverage html
       - store_test_results:
