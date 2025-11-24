@@ -133,12 +133,13 @@ This tap uses [simple authentication](https://api-docs.mailshake.com/#Simple) as
         "api_key": "YourApiKeyFromMailshake",
         "domain": "api.mailshake.com",
         "start_date": "2019-01-01T00:00:00Z",
-        "user_agent": "tap-mailshake <api_user_email@your_company.com>"
+        "user_agent": "tap-mailshake <api_user_email@your_company.com>",
+		"request_timeout": 300
     }
     ```
-    
+    **request_timeout (optional)**: Timeout in seconds for API requests. Default request_timeout is 300.
     Optionally, also create a `state.json` file. `currently_syncing` is an optional attribute used for identifying the last object to be synced in case the job is interrupted mid-stream. The next run would begin where the last job left off.
-
+    Reference link for API documentation: [Mailshake API Docs](https://api-docs.mailshake.com/)
     ```json
     {
         "currently_syncing": "campaigns",

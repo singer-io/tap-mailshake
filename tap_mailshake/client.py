@@ -3,9 +3,13 @@ import requests
 import singer
 from singer import metrics, utils
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import ConnectionError, ChunkedEncodingError
+import http.client
+from requests.exceptions import Timeout
 
 LOGGER = singer.get_logger()
-API_VERSION = '2017-04-01'
+API_VERSION = "2017-04-01"
+REQUEST_TIMEOUT = 300
 
 
 class Server5xxError(Exception):
@@ -103,7 +107,7 @@ def get_exception_for_error_code(error_code):
 
 
 def raise_for_error(response):
-    LOGGER.error('ERROR {}: {}, REASON: {}'.format(response.status_code,
+    LOGGER.error("ERROR {}: {}, REASON: {}".format(response.status_code,
                                                    response.text, response.reason))
     try:
         response.raise_for_status()
@@ -115,10 +119,10 @@ def raise_for_error(response):
                 # us a 2xx response nor a response content.
                 return
             response = response.json()
-            if ('error' in response) or ('errorCode' in response):
-                message = '%s: %s' % (response.get('error', str(error)),
-                                      response.get('message', 'Unknown Error'))
-                error_code = response.get('code')
+            if ("error" in response) or ("errorCode" in response):
+                message = "%s: %s" % (response.get("error", str(error)),
+                                      response.get("message", "Unknown Error"))
+                error_code = response.get("code")
                 ex = get_exception_for_error_code(error_code)
                 raise ex(message)
             raise MailshakeError(error)
@@ -134,12 +138,15 @@ class MailshakeClient:
 
     def __init__(self,
                  api_key,
-                 user_agent=None):
+                 user_agent=None,
+                 request_timeout=REQUEST_TIMEOUT):
         self.__api_key = api_key
         self.base_url = "https://api.mailshake.com/{}".format(
             API_VERSION)
         self.__user_agent = user_agent
         self.__session = requests.Session()
+        self.__verified = False
+        self.request_timeout = request_timeout or REQUEST_TIMEOUT
 
     def __enter__(self):
         self.check_access()
@@ -155,25 +162,31 @@ class MailshakeClient:
     @utils.ratelimit(1, 1.2)
     def check_access(self):
         if self.__api_key is None:
-            raise Exception('Error: Missing api_key in tap_config.json.')
+            raise Exception("Error: Missing api_key in tap_config.json.")
         headers = {}
-        endpoint = 'me'
-        url = '{}/{}'.format(self.base_url, endpoint)
+        endpoint = "me"
+        url = "{}/{}".format(self.base_url, endpoint)
         if self.__user_agent:
-            headers['User-Agent'] = self.__user_agent
-        headers['Accept'] = 'application/json'
+            headers["User-Agent"] = self.__user_agent
+        headers["Accept"] = "application/json"
         response = self.__session.get(
             url=url,
             headers=headers,
-            auth=HTTPBasicAuth(self.__api_key, ''))
+            auth=HTTPBasicAuth(self.__api_key, ""))
         if response.status_code != 200:
-            LOGGER.error('Error status_code = {}'.format(response.status_code))
+            LOGGER.error("Error status_code = {}".format(response.status_code))
             return False
         return True
 
-    @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ConnectionError, MailshakeAPILimitReachedError),
-                          factor=3)
+    @backoff.on_exception(
+        backoff.expo,
+        (Server5xxError, ConnectionError, ChunkedEncodingError, http.client.IncompleteRead,
+         MailshakeAPILimitReachedError, Timeout),
+        factor=3,
+        max_tries=5,
+        on_backoff=lambda details: LOGGER.warning(
+            f"Retrying {details['target'].__name__} after: {details['exception']}")
+    )
     @utils.ratelimit(1, 3)
     def request(self, method, path=None, url=None, json=None, **kwargs):
         """Perform HTTP request"""
@@ -185,36 +198,41 @@ class MailshakeClient:
         #     self.__verified = self.check_access()
 
         if not url and path:
-            url = '{}/{}'.format(self.base_url, path)
+            url = "{}/{}".format(self.base_url, path)
 
-        if 'endpoint' in kwargs:
-            endpoint = kwargs['endpoint']
-            del kwargs['endpoint']
+        if "endpoint" in kwargs:
+            endpoint = kwargs["endpoint"]
+            del kwargs["endpoint"]
         else:
             endpoint = None
 
-        if 'headers' not in kwargs:
-            kwargs['headers'] = {}
+        if "headers" not in kwargs:
+            kwargs["headers"] = {}
 
-        kwargs['headers']['Accept'] = 'application/json'
+        kwargs["headers"]["Accept"] = "application/json"
 
         if self.__user_agent:
-            kwargs['headers']['User-Agent'] = self.__user_agent
+            kwargs["headers"]["User-Agent"] = self.__user_agent
 
-        if method == 'POST':
-            kwargs['headers']['Content-Type'] = 'application/json'
+        if method == "POST":
+            kwargs["headers"]["Content-Type"] = "application/json"
 
         with metrics.http_request_timer(endpoint) as timer:
+            request_timeout = kwargs.pop("request_timeout", self.request_timeout)
             response = self.__session.request(
                 method=method,
                 url=url,
                 json=json,
-                auth=HTTPBasicAuth(self.__api_key, ''),
+                auth=HTTPBasicAuth(self.__api_key, ""),
+                timeout=request_timeout,
                 **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
         if response.status_code >= 500:
             raise Server5xxError()
+
+        if response.status_code == 429:
+            raise MailshakeAPILimitReachedError("Rate limit exceeded")
 
         if response.status_code != 200:
             raise_for_error(response)
@@ -222,13 +240,13 @@ class MailshakeClient:
         # pagination details (nextToken) are returned in the body
         next_token = None
         response_body = response.json()
-        if response_body.get('nextToken') != "":
-            next_token = response_body.get('nextToken')
+        if response_body.get("nextToken") != "":
+            next_token = response_body.get("nextToken")
 
         return response_body, next_token
 
     def get(self, path, **kwargs):
-        return self.request('GET', path=path, **kwargs)
+        return self.request("GET", path=path, **kwargs)
 
     def post(self, path, **kwargs):
-        return self.request('POST', path=path, **kwargs)
+        return self.request("POST", path=path, **kwargs)

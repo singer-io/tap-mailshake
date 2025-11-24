@@ -12,15 +12,42 @@ jobs:
             source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
             uv pip install .
       - run:
+          name: 'JSON Validator'
+          command: |
+            source /usr/local/share/virtualenvs/tap-tester/bin/activate
+            stitch-validate-json tap_mailshake/schemas/*.json
+      - run:
           name: 'pylint'
           command: |
             source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
             uv pip install pylint
-            pylint tap_mailshake --disable missing-docstring,logging-format-interpolation,no-member,broad-except,too-many-branches,consider-using-f-string,raise-missing-from,broad-exception-raised,too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-nested-blocks,too-many-statements
-
+            pylint tap_mailshake -d C,R,W
+      - add_ssh_keys
+      - run:
+          name: 'Unit Tests'
+          command: |
+            source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
+            uv pip install nose coverage parameterized
+            nosetests --with-coverage --cover-erase --cover-package=tap_mailshake --cover-html-dir=htmlcov tap_mailshake/tests/unittests
+            coverage html
+      - store_test_results:
+          path: test_output/report.xml
+      - store_artifacts:
+          path: htmlcov
 workflows:
   version: 2
   commit:
+    jobs:
+      - build:
+          context: circleci-user
+  build_daily:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
     jobs:
       - build:
           context: circleci-user
