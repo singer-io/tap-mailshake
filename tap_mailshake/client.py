@@ -149,7 +149,7 @@ class MailshakeClient:
         self.request_timeout = request_timeout or REQUEST_TIMEOUT
 
     def __enter__(self):
-        self.__verified = self.check_access()
+        self.check_access()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):

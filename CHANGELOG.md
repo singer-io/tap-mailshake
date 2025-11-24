@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.10
+  * Refactor to fix linting errors [#14](https://github.com/singer-io/tap-mailshake/pull/14)
+
+## 0.0.9
+  * Bump dependency versions for twistlock compliance [#12](https://github.com/singer-io/tap-mailshake/pull/12)
+
 ## 0.0.8
   * Fix other usage of unencoded api key.
 
