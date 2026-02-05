@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.0.11
+## 0.1.0
   * Bump dependency versions for twistlock compliance [#16](https://github.com/singer-io/tap-mailshake/pull/16)
 
 ## 0.0.10
