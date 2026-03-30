@@ -10,8 +10,8 @@ setup(name='tap-mailshake',
       py_modules=['tap_mailshake'],
       install_requires=[
           'backoff==2.2.1',
-          'requests==2.32.5',
-          'singer-python==6.4.0'
+          'requests==2.33.0',
+          'singer-python==6.8.0'
       ],
       entry_points='''
           [console_scripts]
