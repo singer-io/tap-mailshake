@@ -34,11 +34,6 @@ class TestGetExceptionForErrorCode(unittest.TestCase):
                 exc_class, MailshakeError,
                 msg=f"Code '{code}' should map to a specific subclass, not base MailshakeError"
             )
-        for code, exc_class in ERROR_CODE_EXCEPTION_MAPPING.items():
-            self.assertIsNot(
-                exc_class, MailshakeError,
-                msg=f"Code '{code}' should map to a specific subclass, not base MailshakeError"
-            )
 
 
 class TestMailshakeClientInit(unittest.TestCase):
