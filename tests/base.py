@@ -21,7 +21,7 @@ def _is_mock_mode() -> bool:
 
 
 if _is_mock_mode():
-    from tests.mock_base import MockMailshakeBaseTest as MailshakeBaseTest  # noqa: F401
+    from mock_base import MockMailshakeBaseTest as MailshakeBaseTest  # noqa: F401
 else:
     from tap_tester import connections, menagerie, runner  # noqa: F401
     from tap_tester.base_suite_tests.base_case import BaseCase

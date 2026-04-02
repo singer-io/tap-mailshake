@@ -17,8 +17,8 @@ duration of the run.
 """
 from __future__ import annotations
 
-from tests._mock_tap_tester import BaseCase
-from tests.mock_data_generator import FIXTURES
+from _mock_tap_tester import BaseCase
+from mock_data_generator import FIXTURES
 
 
 class MockMailshakeBaseTest(BaseCase):

@@ -1,4 +1,4 @@
-from tests.base import MailshakeBaseTest
+from base import MailshakeBaseTest
 from tap_tester import connections, menagerie, runner
 
 

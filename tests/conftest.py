@@ -30,7 +30,7 @@ IS_MOCK_MODE = _is_mock_mode()
 if IS_MOCK_MODE:
     # ── inject stub tap_tester package into sys.modules BEFORE any test
     # file is collected and imports tap_tester.* ──────────────────────────
-    from tests import _mock_tap_tester as _stubs  # noqa: E402
+    import _mock_tap_tester as _stubs  # noqa: E402
 
     # Top-level tap_tester module
     _tt = types.ModuleType("tap_tester")
