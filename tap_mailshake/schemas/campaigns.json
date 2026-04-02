@@ -3,58 +3,71 @@
   "additionalProperties": false,
   "properties": {
     "object": {
-      "type": ["null", "string"]
-    },
-    "id": {
-      "type": ["null", "integer"]
-    },
-    "actionDate": {
-      "type": ["null", "string"],
-      "format": "date-time"
-    },
-    "title": {
-      "type": ["null", "string"]
-    },
-    "created": {
-      "type": ["null", "string"],
-      "format": "date-time"
-    },
-    "archived": {
       "type": [
         "null",
-        "boolean"
+        "string"
       ]
     },
-    "endedAt": {
+    "id": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "title": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "created": {
       "type": [
         "null",
         "string"
       ],
       "format": "date-time"
     },
+    "isArchived": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
     "isPaused": {
-      "type": ["null", "boolean"]
+      "type": [
+        "null",
+        "boolean"
+      ]
     },
     "messages": {
-      "type": ["null", "array"],
+      "type": [
+        "null",
+        "array"
+      ],
       "items": {
-        "type": ["null", "object"],
+        "type": [
+          "null",
+          "object"
+        ],
         "additionalProperties": false,
         "properties": {
           "object": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "id": {
-            "type": ["null", "integer"]
-          },
-          "campaignId": {
             "type": [
               "null",
               "integer"
             ]
           },
           "type": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "subject": {
             "type": [
@@ -69,13 +82,19 @@
             ]
           },
           "isPaused": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       }
     },
     "sender": {
-      "type": ["null", "object"],
+      "type": [
+        "null",
+        "object"
+      ],
       "additionalProperties": false,
       "properties": {
         "object": {
@@ -103,13 +122,19 @@
           ]
         },
         "created": {
-          "type": ["null", "string"],
+          "type": [
+            "null",
+            "string"
+          ],
           "format": "date-time"
         }
       }
     },
     "url": {
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "format": "uri"
     }
   }

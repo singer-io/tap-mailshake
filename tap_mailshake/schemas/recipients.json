@@ -14,12 +14,6 @@
         "integer"
       ]
     },
-    "campaignId": {
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
     "emailAddress": {
       "type": [
         "null",
@@ -51,10 +45,16 @@
       ],
       "format": "date-time"
     },
-    "action": {
+    "isPaused": {
       "type": [
         "null",
-        "string"
+        "boolean"
+      ]
+    },
+    "contactID": {
+      "type": [
+        "null",
+        "integer"
       ]
     },
     "fields": {
@@ -63,8 +63,7 @@
         "object"
       ],
       "additionalProperties": true,
-      "properties": {
-      }
+      "properties": {}
     }
   }
 }
