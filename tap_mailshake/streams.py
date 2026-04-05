@@ -29,6 +29,7 @@ STREAMS = {
                 'key_properties': ['id'],
                 'replication_method': 'INCREMENTAL',
                 'replication_keys': ['created'],
+                'parent': 'campaign',
                 'params': {
                     'campaignID': '<parent_id>'
                 },
