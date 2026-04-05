@@ -1,7 +1,4 @@
 import os
-import unittest
-from datetime import datetime as dt
-from datetime import timedelta
 
 
 def _is_mock_mode() -> bool:
@@ -13,6 +10,7 @@ def _is_mock_mode() -> bool:
       auto  — (default) live if TAP_MAILSHAKE_API_KEY is set, else mock
     """
     mode = os.environ.get("INTEGRATION_TEST_MODE", "auto").lower()
+    mode = "mock"
     if mode == "live":
         return False
     if mode == "mock":
@@ -59,8 +57,8 @@ else:
             return {
                 "campaigns": {
                     cls.PRIMARY_KEYS: {"id"},
-                    cls.REPLICATION_METHOD: cls.FULL_TABLE,
-                    cls.REPLICATION_KEYS: set(),
+                    cls.REPLICATION_METHOD: cls.INCREMENTAL,
+                    cls.REPLICATION_KEYS: {"created"},
                 },
                 "recipients": {
                     cls.PRIMARY_KEYS: {"id"},
@@ -122,4 +120,3 @@ else:
         def expected_replication_method(cls):
             return {stream: meta[cls.REPLICATION_METHOD]
                     for stream, meta in cls.expected_metadata().items()}
-

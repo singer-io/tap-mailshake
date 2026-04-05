@@ -17,7 +17,8 @@ duration of the run.
 """
 from __future__ import annotations
 
-from _mock_tap_tester import BaseCase
+import _mock_tap_tester  # noqa: F401 — must be imported first to inject stubs
+from tap_tester.base_suite_tests.base_case import BaseCase
 from mock_data_generator import FIXTURES
 
 
@@ -25,9 +26,9 @@ class MockMailshakeBaseTest(BaseCase):
     """
     Integration-test base that exercises the tap against mocked HTTP responses.
 
-    Inherits the catalog helpers (run_and_verify_check_mode,
-    perform_and_verify_table_and_field_selection) from the stub BaseCase so
-    that the existing tap_tester-style test patterns work unchanged.
+    Inherits all catalog/sync helpers from tap_tester's BaseCase so that the
+    full set of base suite tests (AllFieldsTest, DiscoveryTest, etc.) can be
+    used alongside mock mode without modification.
     """
 
     start_date = "2024-01-01T00:00:00Z"
@@ -54,62 +55,64 @@ class MockMailshakeBaseTest(BaseCase):
         return {
             "campaigns": {
                 cls.PRIMARY_KEYS: {"id"},
-                cls.REPLICATION_METHOD: cls.FULL_TABLE,
-                cls.REPLICATION_KEYS: set(),
+                cls.REPLICATION_METHOD: cls.INCREMENTAL,
+                cls.REPLICATION_KEYS: {"created"},
+                cls.RESPECTS_START_DATE: True,
             },
             "recipients": {
                 cls.PRIMARY_KEYS: {"id"},
                 cls.REPLICATION_METHOD: cls.INCREMENTAL,
                 cls.REPLICATION_KEYS: {"created"},
+                cls.RESPECTS_START_DATE: True,
             },
             "leads": {
                 cls.PRIMARY_KEYS: {"id"},
                 cls.REPLICATION_METHOD: cls.INCREMENTAL,
                 cls.REPLICATION_KEYS: {"created"},
+                cls.RESPECTS_START_DATE: True,
             },
             "senders": {
                 cls.PRIMARY_KEYS: {"id"},
                 cls.REPLICATION_METHOD: cls.INCREMENTAL,
                 cls.REPLICATION_KEYS: {"created"},
+                cls.RESPECTS_START_DATE: True,
             },
             "team_members": {
                 cls.PRIMARY_KEYS: {"id"},
                 cls.REPLICATION_METHOD: cls.FULL_TABLE,
                 cls.REPLICATION_KEYS: set(),
+                cls.RESPECTS_START_DATE: False,
             },
             "sent_messages": {
                 cls.PRIMARY_KEYS: {"id"},
                 cls.REPLICATION_METHOD: cls.INCREMENTAL,
                 cls.REPLICATION_KEYS: {"actionDate"},
+                cls.RESPECTS_START_DATE: True,
             },
             "opens": {
                 cls.PRIMARY_KEYS: {"id"},
                 cls.REPLICATION_METHOD: cls.INCREMENTAL,
                 cls.REPLICATION_KEYS: {"actionDate"},
+                cls.RESPECTS_START_DATE: True,
             },
             "clicks": {
                 cls.PRIMARY_KEYS: {"id"},
                 cls.REPLICATION_METHOD: cls.INCREMENTAL,
                 cls.REPLICATION_KEYS: {"actionDate"},
+                cls.RESPECTS_START_DATE: True,
             },
             "replies": {
                 cls.PRIMARY_KEYS: {"id"},
                 cls.REPLICATION_METHOD: cls.INCREMENTAL,
                 cls.REPLICATION_KEYS: {"actionDate"},
+                cls.RESPECTS_START_DATE: True,
             },
         }
 
-    @classmethod
-    def expected_streams(cls) -> set:
-        return set(cls.expected_metadata().keys())
-
-    @classmethod
-    def expected_primary_keys(cls) -> dict:
-        return {s: m[cls.PRIMARY_KEYS] for s, m in cls.expected_metadata().items()}
-
-    @classmethod
-    def expected_replication_keys(cls) -> dict:
-        return {s: m[cls.REPLICATION_KEYS] for s, m in cls.expected_metadata().items()}
+    def get_bookmark_value(self, state, stream):
+        """tap-mailshake stores bookmarks as flat datetime strings, not nested dicts."""
+        stream_id = self.get_stream_id(stream)
+        return state.get("bookmarks", {}).get(stream_id) or state.get("bookmarks", {}).get(stream)
 
     def _build_mock_request(self):
         """
