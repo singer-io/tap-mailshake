@@ -23,7 +23,7 @@
     "teamName": {
       "type": [
         "null",
-        "boolean"
+        "string"
       ]
     },
     "isTeamAdmin": {

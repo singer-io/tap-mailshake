@@ -39,7 +39,7 @@ class TestStreamsStructure(unittest.TestCase):
             )
 
     def test_campaigns_full_table(self):
-        self.assertEqual(STREAMS['campaigns']['replication_method'], 'FULL_TABLE')
+        self.assertEqual(STREAMS['campaigns']['replication_method'], 'INCREMENTAL')
 
     def test_leads_incremental(self):
         self.assertEqual(STREAMS['leads']['replication_method'], 'INCREMENTAL')

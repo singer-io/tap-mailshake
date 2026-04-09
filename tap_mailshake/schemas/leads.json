@@ -35,6 +35,19 @@
       ],
       "format": "date-time"
     },
+    "contactID": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "assignedOnDate": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
     "recipient": {
       "type": [
         "null",
@@ -91,8 +104,7 @@
             "object"
           ],
           "additionalProperties": true,
-          "properties": {
-          }
+          "properties": {}
         }
       }
     },

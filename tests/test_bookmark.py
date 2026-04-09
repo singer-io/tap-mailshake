@@ -1,58 +1,67 @@
-from tests.base import MailshakeBaseTest
-from tap_tester import connections, menagerie, runner
+from base import MailshakeBaseTest
+from tap_tester.base_suite_tests.bookmark_test import BookmarkTest as TT_BookmarkTest
 
 
-class BookmarkTest(MailshakeBaseTest):
-    """Test that incremental streams honour and advance their bookmarks."""
+class BookmarkTest(TT_BookmarkTest, MailshakeBaseTest):
+    """Verify incremental streams save bookmarks and respect them on subsequent syncs."""
+
+    # Bookmark datetime format used by this tap for incremental streams.
+    bookmark_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+    initial_bookmarks = {
+        "bookmarks": {
+            "leads": "2021-01-01T00:00:00.000000Z",
+            "senders": "2021-01-01T00:00:00.000000Z",
+            "sent_messages": "2021-01-01T00:00:00.000000Z",
+            "opens": "2021-01-01T00:00:00.000000Z",
+            "clicks": "2021-01-01T00:00:00.000000Z",
+            "replies": "2021-01-01T00:00:00.000000Z",
+        }
+    }
 
     @staticmethod
     def name():
         return "tap_mailshake_bookmark_test"
 
-    def test_bookmark_is_saved_and_respected(self):
+    def streams_to_test(self):
+        # Exclude campaigns and team_members (no replication keys) and recipients (per-campaign child stream, not synced without campaigns).
+        streams_to_exclude = set({
+            "campaigns",
+            "team_members",
+            "recipients"
+        })
+        return self.expected_stream_names().difference(streams_to_exclude)
+
+    def calculate_new_bookmarks(self):
+        """Reset bookmark to before all mock records so sync 2 returns all records."""
+        new_bookmarks = {}
+        for stream in self.streams_to_test():
+            replication_keys = self.expected_replication_keys(stream)
+            assert len(replication_keys) == 1
+            rep_key = next(iter(replication_keys))
+            new_bookmarks[self.get_stream_id(stream)] = {
+                rep_key: "2024-01-05T00:00:00.000000Z"
+            }
+        return new_bookmarks
+
+    @staticmethod
+    def manipulate_state(state: dict, new_bookmarks: dict) -> dict:
+        """Override for tap-mailshake's flat bookmark format.
+
+        tap-mailshake stores state as::
+
+            {"bookmarks": {"leads": "2024-02-01T10:00:00.000000Z"}}
+
+        instead of the standard nested dict format other taps use.
+        This override extracts the value from the ``{rep_key: value}`` dict
+        that ``calculate_new_bookmarks`` returns and stores it as a flat string.
         """
-        Run sync twice. The second sync should start from the bookmark saved
-        by the first sync and return only newer records.
-        """
-        incremental_streams = {
-            stream for stream, method in self.expected_replication_method().items()
-            if method == self.INCREMENTAL
-        }
-
-        if not incremental_streams:
-            self.skipTest("No INCREMENTAL streams to test bookmarks for")
-
-        conn_id = connections.ensure_connection(self)
-        found_catalogs = self.run_and_verify_check_mode(conn_id)
-        self.perform_and_verify_table_and_field_selection(
-            conn_id, found_catalogs, select_all_fields=True
-        )
-
-        # First sync
-        first_sync_job = runner.run_sync_mode(self, conn_id)
-        first_exit = menagerie.get_exit_status(conn_id, first_sync_job)
-        menagerie.verify_sync_exit_status(self, first_exit, first_sync_job)
-        first_record_count = runner.examine_target_output_file(
-            self, conn_id, incremental_streams, self.expected_primary_keys()
-        )
-        first_state = menagerie.get_state(conn_id)
-
-        # Second sync
-        menagerie.set_state(conn_id, first_state)
-        second_sync_job = runner.run_sync_mode(self, conn_id)
-        second_exit = menagerie.get_exit_status(conn_id, second_sync_job)
-        menagerie.verify_sync_exit_status(self, second_exit, second_sync_job)
-        second_record_count = runner.examine_target_output_file(
-            self, conn_id, incremental_streams, self.expected_primary_keys()
-        )
-
-        for stream in incremental_streams:
-            with self.subTest(stream=stream):
-                self.assertLessEqual(
-                    second_record_count.get(stream, 0),
-                    first_record_count.get(stream, 0),
-                    msg=(
-                        f"Second sync for '{stream}' should return ≤ records than first sync "
-                        "(bookmark must reduce the result set)"
-                    )
-                )
+        from copy import deepcopy
+        new_state = deepcopy(state)
+        if "bookmarks" not in new_state:
+            new_state["bookmarks"] = {}
+        for stream, bmark in new_bookmarks.items():
+            if isinstance(bmark, dict):
+                # extract the datetime value from {replication_key: value}
+                bmark = next(iter(bmark.values()))
+            new_state["bookmarks"][stream] = bmark
+        return new_state

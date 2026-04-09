@@ -69,7 +69,7 @@ def process_records(catalog,  # pylint: disable=too-many-branches
         for record in records:
             # If child object, add parent_id to record
             if parent_id and parent:
-                record[parent + '_id'] = parent_id
+                record[parent + 'Id'] = parent_id
 
             # Transform record for Singer.io
             with Transformer(integer_datetime_fmt=UNIX_SECONDS_INTEGER_DATETIME_PARSING) \
@@ -225,7 +225,6 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-b
         children = endpoint_config.get('children')
         if children:
             for child_stream_name, child_endpoint_config in children.items():
-                LOGGER.info(child_stream_name, child_endpoint_config)
                 if child_stream_name in selected_streams:
                     write_schema(catalog, child_stream_name)
                     # For each parent record
