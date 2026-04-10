@@ -18,7 +18,7 @@ STREAMS = {
     'campaigns': {
         'path': 'campaigns/list',
         'key_properties': ['id'],
-        'replication_method': 'FULL_TABLE',
+        'replication_method': 'INCREMENTAL',
         'replication_keys': ['created'],
         'params': {
         },
@@ -29,6 +29,7 @@ STREAMS = {
                 'key_properties': ['id'],
                 'replication_method': 'INCREMENTAL',
                 'replication_keys': ['created'],
+                'parent': 'campaign',
                 'params': {
                     'campaignID': '<parent_id>'
                 },
@@ -57,8 +58,8 @@ STREAMS = {
     'team_members': {
         'path': 'team/list-members',
         'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['team_id'],
+        'replication_method': 'FULL_TABLE',
+        'replication_keys': [],
         'params': {
         },
         'data_key': 'results'

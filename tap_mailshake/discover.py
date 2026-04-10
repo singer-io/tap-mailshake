@@ -23,5 +23,4 @@ def discover():
             metadata=mdata
         ))
 
-    LOGGER.info('Returning catalog: {}'.format(catalog))
     return catalog
