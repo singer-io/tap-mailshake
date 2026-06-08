@@ -8,10 +8,10 @@ jobs:
       - run:
           name: 'Setup virtual env'
           command: |
-            python3 -mvenv /usr/local/share/virtualenvs/tap-mailshake
+            uv venv --python 3.12 /usr/local/share/virtualenvs/tap-mailshake
             source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
-            pip install -U 'pip==22.2.2' 'setuptools==65.3.0'
-            pip install .[dev]
+            uv pip install -U setuptools
+            uv pip install .[dev]
 
       - run:
           name: 'JSON Validator'
@@ -22,14 +22,14 @@ jobs:
           name: 'pylint'
           command: |
             source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
-            pip install pylint
+            uv pip install pylint
             pylint tap_mailshake -d C,R,W
       - add_ssh_keys
       - run:
           name: 'Unit Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
-            pip install nose coverage parameterized
+            uv pip install nose coverage parameterized
             nosetests --with-coverage --cover-erase --cover-package=tap_mailshake --cover-html-dir=htmlcov tap_mailshake/tests/unittests
             coverage html
       - store_test_results:
