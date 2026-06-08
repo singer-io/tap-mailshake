@@ -38,7 +38,7 @@ class TestCheckStreamAccess(unittest.TestCase):
 
     def test_reraises_other_errors(self):
         client = MagicMock()
-        client.post.side_effect = ConnectionError("network error")
+        client.get.side_effect = ConnectionError("network error")
         with self.assertRaises(ConnectionError):
             check_stream_access(client, 'campaigns', {'path': 'campaigns/list'})
 
