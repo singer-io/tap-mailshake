@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+  * Added per-stream access checks during discovery; streams returning 401 Unauthorized are excluded from the catalog. [#19](https://github.com/singer-io/tap-mailshake/pull/19)
+
 ## 1.0.0
   * Bump dependency versions for singer-python and request. [#17](https://github.com/singer-io/tap-mailshake/pull/17)
   * Fixed schema mismatch issues, updated schema for all existing streams.[#18](https://github.com/singer-io/tap-mailshake/pull/18)
