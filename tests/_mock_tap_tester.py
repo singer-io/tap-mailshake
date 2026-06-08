@@ -283,18 +283,10 @@ _last_conn: Any = None
 def _run_check_mode(test_instance, conn_id: _MockConn) -> _MockConn:
     """Run mock check mode (discover); returns conn_id as the job name."""
     from unittest.mock import patch, MagicMock
-    from tap_mailshake.client import MailshakeClient
     from tap_mailshake.discover import discover
 
-    client = MailshakeClient.__new__(MailshakeClient)
-    client._MailshakeClient__api_key = "mock-api-key"
-    client._MailshakeClient__user_agent = "mock/1.0"
-    client.base_url = "https://api.mailshake.com/2017-04-01"
-    client._MailshakeClient__session = MagicMock()
-    client.request_timeout = 300
-
     with patch("tap_mailshake.discover.check_stream_access", return_value=True):
-        conn_id.catalog = discover(client)
+        conn_id.catalog = discover(MagicMock())
     return conn_id
 
 

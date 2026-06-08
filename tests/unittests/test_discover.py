@@ -13,22 +13,26 @@ class TestCheckStreamAccess(unittest.TestCase):
 
     def test_returns_true_when_accessible(self):
         client = MagicMock()
+        client.base_url = 'https://api.mailshake.com/2017-04-01'
         stream_config = {'path': 'campaigns/list'}
         result = check_stream_access(client, 'campaigns', stream_config)
         self.assertTrue(result)
-        client.post.assert_called_once_with(
-            path='campaigns/list', json={'perPage': 1}, endpoint='campaigns'
+        client.get.assert_called_once_with(
+            url='https://api.mailshake.com/2017-04-01/campaigns/list',
+            path='campaigns/list',
+            params='perPage=1',
+            endpoint='campaigns',
         )
 
     def test_returns_false_on_invalid_api_key(self):
         client = MagicMock()
-        client.post.side_effect = MailshakeInvalidApiKeyError("invalid_api_key")
+        client.get.side_effect = MailshakeInvalidApiKeyError("invalid_api_key")
         result = check_stream_access(client, 'campaigns', {'path': 'campaigns/list'})
         self.assertFalse(result)
 
     def test_returns_false_on_not_authorized(self):
         client = MagicMock()
-        client.post.side_effect = MailshakeNotAuthorizedError("not_authorized")
+        client.get.side_effect = MailshakeNotAuthorizedError("not_authorized")
         result = check_stream_access(client, 'leads', {'path': 'leads/list'})
         self.assertFalse(result)
 
