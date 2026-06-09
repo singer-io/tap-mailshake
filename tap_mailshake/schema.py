@@ -18,7 +18,7 @@ def get_schemas():
     flat_streams = flatten_streams()
     for stream_name, stream_metadata in flat_streams.items():
         schema_path = get_abs_path('schemas/{}.json'.format(stream_name))
-        with open(schema_path) as file:
+        with open(schema_path, 'r', encoding = 'utf-8') as file:
             schema = json.load(file)
         schemas[stream_name] = schema
 
@@ -35,6 +35,16 @@ def get_schemas():
         parent_stream = stream_metadata.get('parent_stream')
         if parent_stream:
             mdata[0]['metadata'].update({"parent-tap-stream-id": parent_stream})
+        mdata = metadata.to_map(mdata)
+
+        automatic_keys = stream_metadata.get("replication_keys", []) or []
+        for field_name in schema.get("properties", {}).keys():
+            if field_name in automatic_keys:
+                mdata = metadata.write(
+                    mdata, ("properties", field_name), "inclusion", "automatic"
+                )
+
+        mdata = metadata.to_list(mdata)
         field_metadata[stream_name] = mdata
 
     return schemas, field_metadata

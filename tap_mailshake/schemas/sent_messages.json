@@ -23,7 +23,8 @@
     },
     "recipient": {
       "type": [
-        "null", "object"
+        "null",
+        "object"
       ],
       "additionalProperties": false,
       "properties": {
@@ -70,23 +71,13 @@
           ],
           "format": "date-time"
         },
-        "action": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "isPaused": {
-          "type": ["null", "boolean"]
-        },
         "fields": {
           "type": [
             "null",
             "object"
           ],
           "additionalProperties": true,
-          "properties": {
-          }
+          "properties": {}
         }
       }
     },
@@ -208,7 +199,10 @@
         "array"
       ],
       "items": {
-        "type": ["null", "object"],
+        "type": [
+          "null",
+          "object"
+        ],
         "additionalProperties": false,
         "properties": {
           "object": {

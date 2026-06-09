@@ -26,12 +26,6 @@
         "string"
       ]
     },
-    "offerType": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
     "created": {
       "type": [
         "null",

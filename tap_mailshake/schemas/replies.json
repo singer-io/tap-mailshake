@@ -14,6 +14,12 @@
         "integer"
       ]
     },
+    "contactID": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
     "actionDate": {
       "type": [
         "null",
@@ -71,26 +77,13 @@
           ],
           "format": "date-time"
         },
-        "action": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "isPaused": {
-          "type": [
-            "null",
-            "boolean"
-          ]
-        },
         "fields": {
           "type": [
             "null",
             "object"
           ],
           "additionalProperties": true,
-          "properties": {
-          }
+          "properties": {}
         }
       }
     },
