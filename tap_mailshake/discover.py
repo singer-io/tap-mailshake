@@ -38,11 +38,12 @@ def discover(client) -> Catalog:
 
     # Separate top-level and child streams so parents are always probed first.
     top_level = {name: cfg for name, cfg in STREAMS.items()}
-    children = {
-        child_name: child_cfg
-        for parent_cfg in STREAMS.values()
-        for child_name, child_cfg in parent_cfg.get('children', {}).items()
-    }
+    children = {}
+    child_to_parent = {}
+    for parent_name, parent_cfg in STREAMS.items():
+        for child_name, child_cfg in parent_cfg.get('children', {}).items():
+            children[child_name] = child_cfg
+            child_to_parent[child_name] = parent_name
 
     def _add_stream(stream_name, schema_dict):
         schema = Schema.from_dict(schema_dict)
@@ -72,10 +73,7 @@ def discover(client) -> Catalog:
     for stream_name, stream_config in children.items():
         if stream_name not in schemas:
             continue
-        parent_name = next(
-            (p for p, cfg in STREAMS.items() if stream_name in cfg.get('children', {})),
-            None,
-        )
+        parent_name = child_to_parent.get(stream_name)
         if parent_name not in accessible_streams:
             LOGGER.warning(
                 "Stream '%s' will be excluded from the catalog because its "
