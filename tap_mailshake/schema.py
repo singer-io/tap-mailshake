@@ -34,6 +34,10 @@ def get_schemas():
         )
         mdata = metadata.to_map(mdata)
 
+        parent_tap_stream_id = stream_metadata.get('parent', None)
+        if parent_tap_stream_id:
+            mdata = metadata.write(mdata, (), 'parent-tap-stream-id', parent_tap_stream_id)
+
         automatic_keys = stream_metadata.get("replication_keys", []) or []
         for field_name in schema.get("properties", {}).keys():
             if field_name in automatic_keys:

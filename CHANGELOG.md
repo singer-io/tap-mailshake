@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.1.0
-  * Added per-stream access checks during discovery; streams returning 401 Unauthorized are excluded from the catalog. [#19](https://github.com/singer-io/tap-mailshake/pull/19)
+  * Added `parent-tap-stream-id` metadata to child stream to correctly reflect its parent-child relationship. [#15](https://github.com/singer-io/tap-mailshake/pull/15)
 
 ## 1.0.0
   * Bump dependency versions for singer-python and request. [#17](https://github.com/singer-io/tap-mailshake/pull/17)
