@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+  * Added `parent-tap-stream-id` metadata to child stream to correctly reflect its parent-child relationship. [#15](https://github.com/singer-io/tap-mailshake/pull/15)
+
 ## 1.0.0
   * Bump dependency versions for singer-python and request. [#17](https://github.com/singer-io/tap-mailshake/pull/17)
   * Fixed schema mismatch issues, updated schema for all existing streams.[#18](https://github.com/singer-io/tap-mailshake/pull/18)
