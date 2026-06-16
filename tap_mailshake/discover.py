@@ -25,27 +25,80 @@ def check_stream_access(client, stream_name, stream_config) -> bool:
         return False
 
 
+def _prune_inaccessible_children(schemas: dict, field_metadata: dict) -> None:
+    """Remove child streams from the catalog whose parent stream was excluded.
+
+    Iterates the flat representation of all streams (parents + their children)
+    and removes any child entry whose parent is no longer present in schemas.
+    Mutates schemas and field_metadata in place.
+    """
+    flat_streams = flatten_streams()
+    for stream_name, stream_cfg in list(flat_streams.items()):
+        parent = stream_cfg.get('parent')
+        if stream_name in schemas and parent and parent not in schemas:
+            LOGGER.warning(
+                "Stream '%s' excluded from catalog because its parent stream '%s' is not accessible.",
+                stream_name,
+                parent,
+            )
+            schemas.pop(stream_name, None)
+            field_metadata.pop(stream_name, None)
+
+
+def _apply_access_checks(client, schemas: dict, field_metadata: dict) -> None:
+    """Probe each top-level stream for read access and remove inaccessible streams
+    (and their children) from schemas and field_metadata in place.
+
+    Child streams are skipped during probing — their removal is handled separately
+    by _prune_inaccessible_children().
+    Raises MailshakeNotAuthorizedError if no streams remain accessible.
+    """
+    flat_streams = flatten_streams()
+
+    inaccessible_streams = [
+        stream_name
+        for stream_name in schemas
+        if not flat_streams.get(stream_name, {}).get('parent')
+        and not check_stream_access(client, stream_name, STREAMS[stream_name])
+    ]
+
+    for stream_name in inaccessible_streams:
+        schemas.pop(stream_name, None)
+        field_metadata.pop(stream_name, None)
+
+    _prune_inaccessible_children(schemas, field_metadata)
+
+    if inaccessible_streams:
+        accessible_top_level = sum(
+            1 for name in schemas
+            if not flat_streams.get(name, {}).get('parent')
+        )
+        if accessible_top_level == 0:
+            raise MailshakeNotAuthorizedError(
+                "HTTP-error-code: 403, Error: The account credentials supplied do not have 'read' access to any "
+                "of the streams supported by the tap. Data collection cannot be initiated due to lack of permissions."
+            )
+        LOGGER.warning(
+            "The account credentials supplied do not have 'read' access to the following stream(s): %s. "
+            "These streams have been excluded from the catalog.",
+            ", ".join(inaccessible_streams),
+        )
+
+
 def discover(client) -> Catalog:
-    """Run discovery mode, probing each top-level stream endpoint to verify access.
-    Streams that return an auth error are excluded from the catalog.
+    """Run discovery mode, excluding streams the credentials cannot read.
+
+    Access to each top-level stream is verified via check_stream_access().
+    Streams that return an auth error are removed from the catalog.
     Child streams are included only if their parent stream is accessible.
     """
     schemas, field_metadata = get_schemas()
-    catalog = Catalog([])
-    accessible_streams = set()
+    _apply_access_checks(client, schemas, field_metadata)
 
     flat_streams = flatten_streams()
+    catalog = Catalog([])
 
-    # Separate top-level and child streams so parents are always probed first.
-    top_level = {name: cfg for name, cfg in STREAMS.items()}
-    children = {}
-    child_to_parent = {}
-    for parent_name, parent_cfg in STREAMS.items():
-        for child_name, child_cfg in parent_cfg.get('children', {}).items():
-            children[child_name] = child_cfg
-            child_to_parent[child_name] = parent_name
-
-    def _add_stream(stream_name, schema_dict):
+    for stream_name, schema_dict in schemas.items():
         schema = Schema.from_dict(schema_dict)
         mdata = field_metadata[stream_name]
         catalog.streams.append(CatalogEntry(
@@ -53,41 +106,7 @@ def discover(client) -> Catalog:
             tap_stream_id=stream_name,
             key_properties=flat_streams.get(stream_name, {}).get('key_properties', None),
             schema=schema,
-            metadata=mdata
+            metadata=mdata,
         ))
-        accessible_streams.add(stream_name)
-
-    # First pass: top-level streams
-    for stream_name, stream_config in top_level.items():
-        if stream_name not in schemas:
-            continue
-        if not check_stream_access(client, stream_name, stream_config):
-            LOGGER.warning(
-                "Stream '%s' will be excluded from the catalog due to insufficient permissions.",
-                stream_name,
-            )
-            continue
-        _add_stream(stream_name, schemas[stream_name])
-
-    # Second pass: child streams (only if parent is accessible)
-    for stream_name, stream_config in children.items():
-        if stream_name not in schemas:
-            continue
-        parent_name = child_to_parent.get(stream_name)
-        if parent_name not in accessible_streams:
-            LOGGER.warning(
-                "Stream '%s' will be excluded from the catalog because its "
-                "parent stream '%s' is not accessible.",
-                stream_name,
-                parent_name,
-            )
-            continue
-        _add_stream(stream_name, schemas[stream_name])
-
-    if not catalog.streams:
-        raise Exception(
-            "The credentials do not have read access to any of the supported streams. "
-            "Verify that the API key is valid and has the required permissions."
-        )
 
     return catalog

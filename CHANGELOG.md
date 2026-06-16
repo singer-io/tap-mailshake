@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+  * Streams the credentials cannot access are now excluded from the catalog during discovery instead of raising an error [#19](https://github.com/singer-io/tap-mailshake/pull/19)
+  * Added unit tests for stream access checks and discovery exclusion logic
+
 ## 1.1.0
   * Added `parent-tap-stream-id` metadata to child stream to correctly reflect its parent-child relationship. [#15](https://github.com/singer-io/tap-mailshake/pull/15)
 

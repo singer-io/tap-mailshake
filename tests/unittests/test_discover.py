@@ -1,7 +1,12 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from singer.catalog import Catalog, CatalogEntry
-from tap_mailshake.discover import discover, check_stream_access
+from tap_mailshake.discover import (
+    discover,
+    check_stream_access,
+    _apply_access_checks,
+    _prune_inaccessible_children,
+)
 from tap_mailshake.client import MailshakeInvalidApiKeyError, MailshakeNotAuthorizedError
 
 
@@ -41,6 +46,113 @@ class TestCheckStreamAccess(unittest.TestCase):
         client.get.side_effect = ConnectionError("network error")
         with self.assertRaises(ConnectionError):
             check_stream_access(client, 'campaigns', {'path': 'campaigns/list'})
+
+
+# ---------------------------------------------------------------------------
+# _prune_inaccessible_children
+# ---------------------------------------------------------------------------
+
+class TestPruneInaccessibleChildren(unittest.TestCase):
+
+    def test_removes_child_when_parent_absent(self):
+        """recipients is pruned when campaigns is not in schemas."""
+        schemas = {'recipients': {}}
+        field_metadata = {'recipients': []}
+        _prune_inaccessible_children(schemas, field_metadata)
+        self.assertNotIn('recipients', schemas)
+        self.assertNotIn('recipients', field_metadata)
+
+    def test_keeps_child_when_parent_present(self):
+        """recipients is kept when campaigns is still in schemas."""
+        schemas = {'campaigns': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'recipients': []}
+        _prune_inaccessible_children(schemas, field_metadata)
+        self.assertIn('recipients', schemas)
+
+    def test_keeps_top_level_streams_unchanged(self):
+        """Top-level streams without a parent are never removed."""
+        schemas = {'campaigns': {}, 'leads': {}}
+        field_metadata = {'campaigns': [], 'leads': []}
+        _prune_inaccessible_children(schemas, field_metadata)
+        self.assertIn('campaigns', schemas)
+        self.assertIn('leads', schemas)
+
+    def test_no_op_when_all_parents_present(self):
+        """No streams are pruned when all parents are accessible."""
+        schemas = {'campaigns': {}, 'leads': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'leads': [], 'recipients': []}
+        _prune_inaccessible_children(schemas, field_metadata)
+        self.assertEqual(len(schemas), 3)
+
+
+# ---------------------------------------------------------------------------
+# _apply_access_checks
+# ---------------------------------------------------------------------------
+
+class TestApplyAccessChecks(unittest.TestCase):
+
+    @patch("tap_mailshake.discover.check_stream_access")
+    def test_removes_inaccessible_stream(self, mock_check):
+        """An inaccessible top-level stream is removed from schemas."""
+        mock_check.side_effect = lambda client, name, cfg: name != 'leads'
+        schemas = {'campaigns': {}, 'leads': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'leads': [], 'recipients': []}
+        _apply_access_checks(MagicMock(), schemas, field_metadata)
+        self.assertNotIn('leads', schemas)
+        self.assertNotIn('leads', field_metadata)
+
+    @patch("tap_mailshake.discover.check_stream_access")
+    def test_prunes_child_when_parent_removed(self, mock_check):
+        """Child stream is pruned after its parent is removed by access check."""
+        mock_check.side_effect = lambda client, name, cfg: name != 'campaigns'
+        schemas = {'campaigns': {}, 'leads': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'leads': [], 'recipients': []}
+        _apply_access_checks(MagicMock(), schemas, field_metadata)
+        self.assertNotIn('campaigns', schemas)
+        self.assertNotIn('recipients', schemas)
+        self.assertIn('leads', schemas)
+
+    @patch("tap_mailshake.discover.check_stream_access")
+    def test_raises_when_all_inaccessible(self, mock_check):
+        """Raises MailshakeNotAuthorizedError when no top-level streams are accessible."""
+        mock_check.return_value = False
+        schemas = {'campaigns': {}, 'leads': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'leads': [], 'recipients': []}
+        with self.assertRaises(MailshakeNotAuthorizedError) as ctx:
+            _apply_access_checks(MagicMock(), schemas, field_metadata)
+        self.assertIn("do not have 'read' access to any", str(ctx.exception))
+
+    @patch("tap_mailshake.discover.check_stream_access")
+    def test_does_not_probe_child_streams(self, mock_check):
+        """check_stream_access is never called for child streams (e.g. recipients)."""
+        mock_check.return_value = True
+        schemas = {'campaigns': {}, 'leads': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'leads': [], 'recipients': []}
+        _apply_access_checks(MagicMock(), schemas, field_metadata)
+        probed = [call.args[1] for call in mock_check.call_args_list]
+        self.assertNotIn('recipients', probed)
+
+    @patch("tap_mailshake.discover.check_stream_access")
+    def test_no_changes_when_all_accessible(self, mock_check):
+        """schemas is unchanged when all top-level streams are accessible."""
+        mock_check.return_value = True
+        schemas = {'campaigns': {}, 'leads': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'leads': [], 'recipients': []}
+        _apply_access_checks(MagicMock(), schemas, field_metadata)
+        self.assertIn('campaigns', schemas)
+        self.assertIn('leads', schemas)
+        self.assertIn('recipients', schemas)
+
+    @patch("tap_mailshake.discover.check_stream_access")
+    def test_logs_warning_for_inaccessible_stream(self, mock_check):
+        """A warning is logged listing the excluded stream names."""
+        mock_check.side_effect = lambda client, name, cfg: name != 'leads'
+        schemas = {'campaigns': {}, 'leads': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'leads': [], 'recipients': []}
+        with patch("tap_mailshake.discover.LOGGER") as mock_logger:
+            _apply_access_checks(MagicMock(), schemas, field_metadata)
+        warning_msgs = " ".join(str(call) for call in mock_logger.warning.call_args_list)
+        self.assertIn('leads', warning_msgs)
 
 
 # ---------------------------------------------------------------------------
@@ -162,8 +274,8 @@ class TestDiscover(unittest.TestCase):
         mock_check.side_effect = lambda client, name, cfg: name != 'leads'
         with patch("tap_mailshake.discover.LOGGER") as mock_logger:
             discover(MagicMock())
-        warned = [call.args[1] for call in mock_logger.warning.call_args_list]
-        self.assertIn('leads', warned)
+        warning_msgs = " ".join(str(call) for call in mock_logger.warning.call_args_list)
+        self.assertIn('leads', warning_msgs)
 
     @patch("tap_mailshake.discover.check_stream_access")
     def test_all_inaccessible_raises_exception(self, mock_check):
@@ -171,4 +283,4 @@ class TestDiscover(unittest.TestCase):
         mock_check.return_value = False
         with self.assertRaises(Exception) as ctx:
             discover(MagicMock())
-        self.assertIn("do not have read access", str(ctx.exception))
+        self.assertIn("do not have 'read' access to any", str(ctx.exception))
