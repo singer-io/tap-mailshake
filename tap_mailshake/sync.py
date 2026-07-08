@@ -131,7 +131,7 @@ def sync_endpoint(client,  # pylint: disable=too-many-branches,too-many-nested-b
         start_date = "2019-01-01T00:00:00Z"
     last_datetime = None
     last_integer = None
-    data_key = endpoint_config.get('data_key', 'results')
+    data_key = endpoint_config.get('data_key')
     if bookmark_type == 'integer':
         last_integer = get_bookmark(state, stream_name, 0)
         max_bookmark_value = last_integer
