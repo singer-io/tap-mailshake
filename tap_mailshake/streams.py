@@ -44,7 +44,7 @@ STREAMS: dict[str, StreamConfig] = {
                 'replication_keys': ['created'],
                 'parent': 'campaigns',
                 'params': {'campaignID': '<parent_id>'},
-                'data_key': 'results',
+                'data_key': 'results'
             }
         },
     },
@@ -53,49 +53,49 @@ STREAMS: dict[str, StreamConfig] = {
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['created'],
-        'data_key': 'results',
+        'data_key': 'results'
     },
     'senders': {
         'path': 'senders/list',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['created'],
-        'data_key': 'results',
+        'data_key': 'results'
     },
     'team_members': {
         'path': 'team/list-members',
         'key_properties': ['id'],
         'replication_method': 'FULL_TABLE',
         'replication_keys': [],
-        'data_key': 'results',
+        'data_key': 'results'
     },
     'sent_messages': {
         'path': 'activity/sent',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['actionDate'],
-        'data_key': 'results',
+        'data_key': 'results'
     },
     'opens': {
         'path': 'activity/opens',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['actionDate'],
-        'data_key': 'results',
+        'data_key': 'results'
     },
     'clicks': {
         'path': 'activity/clicks',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['actionDate'],
-        'data_key': 'results',
+        'data_key': 'results'
     },
     'replies': {
         'path': 'activity/replies',
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['actionDate'],
-        'data_key': 'results',
+        'data_key': 'results'
     },
 }
 
