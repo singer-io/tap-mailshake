@@ -162,7 +162,7 @@ class MailshakeClient:
     @utils.ratelimit(1, 1.2)
     def check_access(self):
         if self.__api_key is None:
-            raise Exception("Error: Missing api_key in tap_config.json.")
+            raise Exception("Error: Missing api_key in config.")
         headers = {}
         endpoint = "me"
         url = "{}/{}".format(self.base_url, endpoint)
