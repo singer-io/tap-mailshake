@@ -154,6 +154,20 @@ class TestApplyAccessChecks(unittest.TestCase):
         warning_msgs = " ".join(str(call) for call in mock_logger.warning.call_args_list)
         self.assertIn('leads', warning_msgs)
 
+    @patch("tap_mailshake.discover.check_stream_access")
+    def test_logs_warning_with_inaccessible_parent_and_child(self, mock_check):
+        """Consolidated warning includes inaccessible parent and its pruned child stream."""
+        mock_check.side_effect = lambda client, name, cfg: name != 'campaigns'
+        schemas = {'campaigns': {}, 'leads': {}, 'recipients': {}}
+        field_metadata = {'campaigns': [], 'leads': [], 'recipients': []}
+
+        with patch("tap_mailshake.discover.LOGGER") as mock_logger:
+            _apply_access_checks(MagicMock(), schemas, field_metadata)
+
+        warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
+        self.assertTrue(any('Unauthorized streams excluded from catalog' in call for call in warning_calls))
+        self.assertTrue(any('campaigns, recipients' in call for call in warning_calls))
+
 
 # ---------------------------------------------------------------------------
 # discover()
