@@ -1,6 +1,7 @@
 import backoff
 import requests
 import singer
+import re
 from singer import metrics, utils
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError, ChunkedEncodingError
@@ -106,9 +107,27 @@ def get_exception_for_error_code(error_code):
     return ERROR_CODE_EXCEPTION_MAPPING.get(error_code, MailshakeError)
 
 
+def _sanitize_response_text(status_code, response_text):
+    if not response_text:
+        return response_text
+
+    if status_code == 401 and "invalid_api_key" in response_text.lower():
+        return re.sub(r"(?i)(Invalid api key:\s*)([^\"\s,}]+)", r"\1***", response_text)
+
+    return response_text
+
+
+def _sanitize_error_message(error_message):
+    if not error_message:
+        return error_message
+
+    return re.sub(r"(?i)(Invalid api key:\s*)([^\"\s,}]+)", r"\1***", error_message)
+
+
 def raise_for_error(response):
+    safe_response_text = _sanitize_response_text(response.status_code, response.text)
     LOGGER.error("ERROR {}: {}, REASON: {}".format(response.status_code,
-                                                   response.text, response.reason))
+                                                   safe_response_text, response.reason))
     try:
         response.raise_for_status()
     except (requests.HTTPError, requests.ConnectionError) as error:
@@ -120,14 +139,19 @@ def raise_for_error(response):
                 return
             response = response.json()
             if ("error" in response) or ("errorCode" in response):
-                message = "%s: %s" % (response.get("error", str(error)),
-                                      response.get("message", "Unknown Error"))
+                safe_error = _sanitize_error_message(response.get("error", str(error)))
+                safe_message = _sanitize_error_message(response.get("message", "Unknown Error"))
+                message = "%s: %s" % (safe_error, safe_message)
                 error_code = response.get("code")
                 ex = get_exception_for_error_code(error_code)
                 raise ex(message)
             raise MailshakeError(error)
         except (ValueError, TypeError):
             raise MailshakeError(error)
+
+
+def _is_null_or_empty(value):
+    return value is None or (isinstance(value, str) and value.strip() == "")
 
 
 class MailshakeClient:
@@ -161,8 +185,8 @@ class MailshakeClient:
                           factor=2)
     @utils.ratelimit(1, 1.2)
     def check_access(self):
-        if self.__api_key is None:
-            raise Exception("Error: Missing api_key in config.")
+        if _is_null_or_empty(self.__api_key):
+            raise MailshakeMissingParameterError("Missing api_key in config.")
         headers = {}
         endpoint = "me"
         url = "{}/{}".format(self.base_url, endpoint)
@@ -173,9 +197,13 @@ class MailshakeClient:
             url=url,
             headers=headers,
             auth=HTTPBasicAuth(self.__api_key, ""))
+        if response.status_code >= 500:
+            raise Server5xxError()
         if response.status_code != 200:
-            LOGGER.error("Error status_code = {}".format(response.status_code))
-            return False
+            raise_for_error(response)
+            raise MailshakeError(
+                "Authentication failed with status code {}".format(response.status_code)
+            )
         return True
 
     @backoff.on_exception(
