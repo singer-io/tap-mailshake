@@ -21,7 +21,12 @@ def check_stream_access(client, stream_name, stream_config) -> bool:
     try:
         client.get(url=url, path=path, params='perPage=1', endpoint=stream_name)
         return True
-    except (MailshakeInvalidApiKeyError, MailshakeNotAuthorizedError):
+    except (MailshakeInvalidApiKeyError, MailshakeNotAuthorizedError) as exc:
+        LOGGER.warning(
+            "Permission Error: Stream '%s' - %s",
+            stream_name,
+            exc,
+        )
         return False
 
 
@@ -74,7 +79,7 @@ def _apply_access_checks(client, schemas: dict, field_metadata: dict) -> None:
 
     if not schemas:
         raise MailshakeNotAuthorizedError(
-            "HTTP-error-code: 403, Error: The account credentials supplied do not have 'read' access to any "
+            "The account credentials supplied do not have 'read' access to any "
             "of the streams supported by the tap. Data collection cannot be initiated due to lack of permissions."
         )
 
