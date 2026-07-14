@@ -21,7 +21,7 @@ def check_stream_access(client, stream_name, stream_config) -> bool:
     try:
         client.get(url=url, path=path, params='perPage=1', endpoint=stream_name)
         return True
-    except (MailshakeInvalidApiKeyError, MailshakeNotAuthorizedError) as exc:
+    except MailshakeNotAuthorizedError as exc:
         LOGGER.warning(
            "Excluding unauthorized stream '%s' from catalog. HTTP-Error-Message: '%s'",
             stream_name,

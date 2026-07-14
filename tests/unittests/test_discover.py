@@ -29,11 +29,11 @@ class TestCheckStreamAccess(unittest.TestCase):
             endpoint='campaigns',
         )
 
-    def test_returns_false_on_invalid_api_key(self):
+    def test_raises_on_invalid_api_key(self):
         client = MagicMock()
         client.get.side_effect = MailshakeInvalidApiKeyError("invalid_api_key")
-        result = check_stream_access(client, 'campaigns', {'path': 'campaigns/list'})
-        self.assertFalse(result)
+        with self.assertRaises(MailshakeInvalidApiKeyError):
+            check_stream_access(client, 'campaigns', {'path': 'campaigns/list'})
 
     def test_returns_false_on_not_authorized(self):
         client = MagicMock()
