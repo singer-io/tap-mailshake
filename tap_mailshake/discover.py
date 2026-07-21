@@ -12,7 +12,7 @@ def check_stream_access(client, stream_name, stream_config) -> bool:
     Probes a top-level stream endpoint using the same method and params as
     sync_endpoint() — GET with perPage=1 as a query string — to verify the
     API key has access to that stream.
-    Returns True if accessible, False on auth errors. Any other exception is re-raised.
+    Returns True if accessible, False on MailshakeNotAuthorizedError. Any other exception is re-raised.
     Should only be called for top-level streams (those without a 'parent' key).
     """
     path = stream_config['path']
