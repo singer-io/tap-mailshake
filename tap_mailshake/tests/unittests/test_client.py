@@ -2,7 +2,6 @@ import unittest
 from unittest.mock import patch, Mock
 from parameterized import parameterized
 from requests.exceptions import Timeout
-from unittest.mock import patch
 from requests.exceptions import ConnectionError
 from tap_mailshake.client import MailshakeAPILimitReachedError, Server5xxError
 from requests.models import Response
