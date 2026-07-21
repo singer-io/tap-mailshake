@@ -2,7 +2,7 @@ import singer
 from singer.catalog import Catalog, CatalogEntry, Schema
 from tap_mailshake.schema import get_schemas
 from tap_mailshake.streams import STREAMS, flatten_streams
-from tap_mailshake.client import MailshakeInvalidApiKeyError, MailshakeNotAuthorizedError
+from tap_mailshake.client import MailshakeNotAuthorizedError
 
 LOGGER = singer.get_logger()
 
