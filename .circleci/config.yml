@@ -11,8 +11,7 @@ jobs:
             uv venv --python 3.12 /usr/local/share/virtualenvs/tap-mailshake
             source /usr/local/share/virtualenvs/tap-mailshake/bin/activate
             uv pip install -U setuptools
-            uv pip install .[dev]
-
+            uv pip install .
       - run:
           name: 'JSON Validator'
           command: |
