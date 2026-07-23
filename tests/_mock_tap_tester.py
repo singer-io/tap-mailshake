@@ -282,8 +282,11 @@ _last_conn: Any = None
 
 def _run_check_mode(test_instance, conn_id: _MockConn) -> _MockConn:
     """Run mock check mode (discover); returns conn_id as the job name."""
+    from unittest.mock import patch, MagicMock
     from tap_mailshake.discover import discover
-    conn_id.catalog = discover()
+
+    with patch("tap_mailshake.discover.check_stream_access", return_value=True):
+        conn_id.catalog = discover(MagicMock())
     return conn_id
 
 

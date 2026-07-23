@@ -83,21 +83,25 @@ class TestTransformDatetime(unittest.TestCase):
 class TestWriteSchema(unittest.TestCase):
 
     @patch('singer.write_schema')
-    def test_write_schema_calls_singer_write_schema(self, mock_write_schema):
+    @patch('tap_mailshake.discover.check_stream_access', return_value=True)
+    def test_write_schema_calls_singer_write_schema(self, mock_check, mock_write_schema):
         from tap_mailshake.sync import write_schema
         from tap_mailshake.discover import discover
-        catalog = discover()
+        from unittest.mock import MagicMock
+        catalog = discover(MagicMock())
         write_schema(catalog, 'leads')
         self.assertTrue(mock_write_schema.called)
         args = mock_write_schema.call_args[0]
         self.assertEqual(args[0], 'leads')
 
     @patch('singer.write_schema')
-    def test_write_schema_raises_on_os_error(self, mock_write_schema):
+    @patch('tap_mailshake.discover.check_stream_access', return_value=True)
+    def test_write_schema_raises_on_os_error(self, mock_check, mock_write_schema):
         from tap_mailshake.sync import write_schema
         from tap_mailshake.discover import discover
+        from unittest.mock import MagicMock
         mock_write_schema.side_effect = OSError("disk full")
-        catalog = discover()
+        catalog = discover(MagicMock())
         with self.assertRaises(OSError):
             write_schema(catalog, 'leads')
 
